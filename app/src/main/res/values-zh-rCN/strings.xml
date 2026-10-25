@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="calendar_name">万年历</string>
-    <string name="app_name">雹</string>
+    <string name="app_name">Freeze</string>
     <string name="app_slogan">实现冻结自由！</string>
     <string name="title_home">首页</string>
     <string name="title_apps">应用</string>
@@ -9,12 +9,14 @@
     <string name="title_settings">设置</string>
     <string name="title_about">关于</string>
     <string name="title_other">其他</string>
+    <string name="title_security">安全</string>
+    <string name="title_appearance">外观和触感</string>
+    <string name="haptic_feedback">触感</string>
     <string name="label_default">默认</string>
     <string name="label_version">版本</string>
     <string name="label_time">安装时间</string>
     <string name="action_telegram">Telegram 群组</string>
     <string name="action_qq">QQ群</string>
-    <string name="action_donate">捐赠</string>
     <string name="action_github">GitHub</string>
     <string name="action_translate">翻译</string>
     <string name="action_licenses">许可证</string>
@@ -30,6 +32,15 @@
     <string name="action_restore_current">恢复可见</string>
     <string name="action_open_operation_menu">打开操作菜单</string>
     <string name="action_close_operation_menu">关闭操作菜单</string>
+    <string name="action_next">下一步</string>
+    <string name="action_done">完成</string>
+    <string name="action_confirm_add">确定</string>
+    <string name="title_filter_sort">筛选与排序</string>
+    <string name="title_add_to_group">选择分组</string>
+    <string name="msg_add_apps_to_group">将 %1$d 个应用添加到所选分组。</string>
+    <string name="msg_remove_apps_from_home">将从首页移除 %1$d 个应用。</string>
+    <string name="msg_add_and_remove_apps">将添加 %1$d 个应用，并移除 %2$d 个应用。</string>
+    <string name="action_unavailable_on_page">此页不可用</string>
     <string name="auto_operation">自动操作</string>
     <string name="auto_operation_delay">操作延时（分钟）</string>
     <string name="default_working_mode">默认模式</string>
@@ -61,6 +72,7 @@
     <string name="action_undo">撤销</string>
     <string name="action_help">帮助</string>
     <string name="action_search">搜索</string>
+    <string name="action_refresh">刷新</string>
     <string name="action_details">应用信息</string>
     <string name="action_extract_apk">提取安装包</string>
     <string name="action_uninstall">卸载</string>
@@ -99,19 +111,6 @@
     <string name="sort_name">名称</string>
     <string name="sort_install">首次安装</string>
     <string name="sort_update">最近更新</string>
-    <string name="title_donate">谢谢你。</string>
-    <string name="donate_alipay">支付宝</string>
-    <string name="donate_wechat">微信支付</string>
-    <string name="donate_wechat_scan">扫一扫</string>
-    <string name="donate_bilibili">哔哩哔哩</string>
-    <string name="donate_bilibili_msg">哔哩哔哩年度大会员每31天可至我的大会员-卡券包内领取1张5B币券，可用于承包番剧、给up主充电、兑换电池，兑换漫画赛季积分等。
-\n若您的B币券没有好去处，可为我充电，我愿收留它们。
-\n* 因B站会收取30%的渠道服务费，并不建议您充值充电。
-\n不是年度大会员？点个关注也可以。</string>
-    <string name="donate_bilibili_space">我的空间</string>
-    <string name="donate_bilibili_cancel">下次一定</string>
-    <string name="donate_liberapay">Liberapay</string>
-    <string name="donate_paypal">PayPal</string>
     <string name="permission_denied">没有权限</string>
     <string name="app_not_installed">应用未安装</string>
     <string name="activity_not_found">无可启动活动</string>
@@ -193,6 +192,23 @@
     <string name="tag_working_action_default">跟随默认模式</string>
     <string name="nine_key">T9 搜索</string>
     <string name="home_font_size">首页字体大小</string>
+    <string name="home_icon_size">首页图标大小</string>
+    <string name="home_icon_size_summary">每行 %1$s 个图标</string>
+    <string name="textless_mode">无字模式</string>
+    <string name="textless_mode_summary">首页应用不显示名称</string>
+    <string name="floating_navigation_bar">悬浮底栏</string>
+    <string name="floating_navigation_bar_summary">首页和设置使用悬浮底栏</string>
+    <string name="action_button_position">快捷按钮位置</string>
+    <string name="action_button_position_bottom_bar">底栏</string>
+    <string name="action_button_position_bottom_right">首页右下角</string>
+    <string name="title_backup_restore">备份与恢复</string>
+    <string name="action_backup">备份</string>
+    <string name="action_restore">恢复</string>
+    <string name="backup_success">备份已保存</string>
+    <string name="restore_success">恢复完成</string>
+    <string name="backup_failed">备份失败</string>
+    <string name="restore_failed">恢复失败</string>
+    <string name="restore_confirm_message">确定从该备份恢复设置、冻结列表、标签及每个标签的模式吗？</string>
     <string name="mode_privapp_disable">系统应用 - 停用</string>
     <string name="mode_shizuku_stop">Shizuku - 强行停止</string>
     <string name="mode_privapp_stop">系统应用 - 强行停止</string>

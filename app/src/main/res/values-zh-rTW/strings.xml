@@ -1,18 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">雹</string>
+    <string name="app_name">Freeze</string>
     <string name="app_slogan">實現凍結自由！</string>
     <string name="title_home">首頁</string>
     <string name="title_apps">應用程式</string>
     <string name="title_settings">設定</string>
     <string name="title_about">關於</string>
     <string name="title_other">其他</string>
+    <string name="title_security">安全性</string>
+    <string name="title_appearance">外觀與觸感</string>
+    <string name="haptic_feedback">觸感</string>
     <string name="label_default">預設</string>
     <string name="label_version">版本</string>
     <string name="label_time">安裝時間</string>
     <string name="action_telegram">Telegram 群組</string>
     <string name="action_qq">QQ 群組</string>
-    <string name="action_donate">捐贈</string>
     <string name="action_github">GitHub</string>
     <string name="action_translate">翻譯</string>
     <string name="action_licenses">授權</string>
@@ -28,6 +30,15 @@
     <string name="action_restore_current">恢復可見</string>
     <string name="action_open_operation_menu">開啟操作選單</string>
     <string name="action_close_operation_menu">關閉操作選單</string>
+    <string name="action_next">下一步</string>
+    <string name="action_done">完成</string>
+    <string name="action_confirm_add">確定</string>
+    <string name="title_filter_sort">篩選與排序</string>
+    <string name="title_add_to_group">選擇分組</string>
+    <string name="msg_add_apps_to_group">將 %1$d 個應用程式加入所選分組。</string>
+    <string name="msg_remove_apps_from_home">將從首頁移除 %1$d 個應用程式。</string>
+    <string name="msg_add_and_remove_apps">將新增 %1$d 個應用程式，並移除 %2$d 個應用程式。</string>
+    <string name="action_unavailable_on_page">此頁不可用</string>
     <string name="auto_operation">自動操作</string>
     <string name="auto_operation_delay">操作延遲（分鐘）</string>
     <string name="default_working_mode">預設模式</string>
@@ -58,6 +69,7 @@
     <string name="action_undo">復原</string>
     <string name="action_help">說明</string>
     <string name="action_search">搜尋</string>
+    <string name="action_refresh">重新整理</string>
     <string name="action_details">應用程式資訊</string>
     <string name="action_extract_apk">擷取 APK</string>
     <string name="action_uninstall">解除安裝</string>
@@ -95,19 +107,6 @@
     <string name="sort_name">名稱</string>
     <string name="sort_install">首次安裝</string>
     <string name="sort_update">最近更新</string>
-    <string name="title_donate">謝謝你！</string>
-    <string name="donate_alipay">支付寶</string>
-    <string name="donate_wechat">微信支付</string>
-    <string name="donate_wechat_scan">掃描</string>
-    <string name="donate_bilibili">嗶哩嗶哩</string>
-    <string name="donate_bilibili_msg">嗶哩嗶哩年度大會員每月可至我的大會員 - 卡券包內領取 1 張 5B 幣券，可用於承包番劇、給 up 主充電、兌換電池，兌換漫畫賽季積分等。
-\n若您的 B 幣券沒有好去處，可為我充電，我願收留它們。
-\n* 因 B 站會收取 30% 的渠道服務費，並不建議您儲值充電。
-\n不是年度大會員？點個關注也可以。</string>
-    <string name="donate_bilibili_space">我的空間</string>
-    <string name="donate_bilibili_cancel">下次一定</string>
-    <string name="donate_liberapay">Liberapay</string>
-    <string name="donate_paypal">PayPal</string>
     <string name="permission_denied">權限遭拒</string>
     <string name="app_not_installed">應用程式未安裝</string>
     <string name="activity_not_found">找不到可啟動的活動</string>
@@ -180,6 +179,23 @@
     <string name="command">命令</string>
     <string name="tag">標籤</string>
     <string name="home_font_size">首頁字型大小</string>
+    <string name="home_icon_size">首頁圖示大小</string>
+    <string name="home_icon_size_summary">每列 %1$s 個圖示</string>
+    <string name="textless_mode">無字模式</string>
+    <string name="textless_mode_summary">首頁應用程式不顯示名稱</string>
+    <string name="floating_navigation_bar">懸浮底欄</string>
+    <string name="floating_navigation_bar_summary">首頁和設定使用懸浮底欄</string>
+    <string name="action_button_position">快捷按鈕位置</string>
+    <string name="action_button_position_bottom_bar">底欄</string>
+    <string name="action_button_position_bottom_right">首頁右下角</string>
+    <string name="title_backup_restore">備份與還原</string>
+    <string name="action_backup">備份</string>
+    <string name="action_restore">還原</string>
+    <string name="backup_success">備份已儲存</string>
+    <string name="restore_success">還原完成</string>
+    <string name="backup_failed">備份失敗</string>
+    <string name="restore_failed">還原失敗</string>
+    <string name="restore_confirm_message">確定從此備份還原設定、凍結清單、標籤及每個標籤的模式嗎？</string>
     <string name="mode_shizuku_stop">Shizuku - 強制停止</string>
     <string name="mode_privapp_stop">系統應用程式 - 強制停止</string>
     <string name="mode_privapp_disable">系統應用程式 - 停用</string>

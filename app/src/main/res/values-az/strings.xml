@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Hail</string>
+    <string name="app_name">Freeze</string>
     <string name="app_slogan">Mütləq Azadlıq!</string>
     <string name="title_home">Ev</string>
     <string name="title_apps">Tətbiqlər</string>
@@ -11,7 +11,6 @@
     <string name="label_time">Quraşdırılma vaxtı</string>
     <string name="action_telegram">Telegram qrupu</string>
     <string name="action_qq">QQ qrupu</string>
-    <string name="action_donate">Bağış</string>
     <string name="action_github">GitHub</string>
     <string name="action_translate">Tərcümə</string>
     <string name="action_licenses">Lisenziyalar</string>

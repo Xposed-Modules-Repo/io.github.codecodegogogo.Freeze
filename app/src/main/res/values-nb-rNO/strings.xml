@@ -11,10 +11,9 @@
     <string name="action_unfreeze_all">Tin alle</string>
     <string name="title_home">Hjem</string>
     <string name="action_qq">QQ-gruppe</string>
-    <string name="action_donate">Doner</string>
     <string name="action_github">GitHub</string>
     <string name="action_licenses">Lisenser</string>
-    <string name="app_name">Hail</string>
+    <string name="app_name">Freeze</string>
     <string name="action_tag_remove">Fjern etikett</string>
     <string name="title_apps">Programmer</string>
     <string name="title_about">Om</string>
@@ -36,13 +35,11 @@
     <string name="action_export_clipboard">Eksporter til utklippstavle</string>
     <string name="action_details">Programinfo</string>
     <string name="sort_install">Installeringstidspunkt</string>
-    <string name="donate_liberapay">Liberapay</string>
     <string name="action_add_pin_shortcut">Legg til på hjemmeskjerm</string>
     <string name="action_undo">Angre</string>
     <string name="action_search">Søk</string>
     <string name="filter_frozen_apps">Fryst</string>
     <string name="sort_name">Navn</string>
-    <string name="donate_paypal">PayPal</string>
     <string name="title_customize">Tilpass</string>
     <string name="action_pin">Fest</string>
     <string name="action_none">Ingen</string>
@@ -53,8 +50,6 @@
     <string name="filter_unfrozen_apps">Tint</string>
     <string name="sort_by">Sorter etter</string>
     <string name="sort_update">Siste oppgradering</string>
-    <string name="title_donate">Takk.</string>
-    <string name="donate_wechat_scan">Skann</string>
     <string name="app_not_installed">Programmet er ikke installert</string>
     <string name="msg_selected">Valgt: %s</string>
     <string name="msg_text_copied">Kopiert: %s</string>
@@ -85,7 +80,6 @@
     <string name="title_set_owner">Sett enhetseier</string>
     <string name="msg_set_owner">Utfør følgende kommando fra ADB:
 \n%s</string>
-    <string name="donate_bilibili">bilibili</string>
     <string name="permission_denied">Tilgang nektet</string>
     <string name="operation_failed">Operasjonen mislyktes: %s</string>
     <plurals name="msg_deferred_task">
@@ -100,9 +94,6 @@
     <string name="mode_shizuku_suspend">Shizuku — hvilemodus</string>
     <string name="title_remove_owner">Fjern enhetseier</string>
     <string name="tap_to_select">Trykk for å å velge flere</string>
-    <string name="donate_alipay">Apipay</string>
-    <string name="donate_wechat">WeChat Pay</string>
-    <string name="donate_bilibili_msg">Følg meg på bilibili.</string>
     <string name="activity_not_found">Finner ikke oppstartsaktivitet</string>
     <string name="shizuku_missing">Shizuku mangler :(</string>
     <string name="msg_freeze">Fryst: %s</string>
@@ -115,7 +106,6 @@
     <string name="auto_freeze">Auto-frysing</string>
     <string name="action_import_app">Importer program</string>
     <string name="auto_freeze_delay">Frysningsforsinkelse (minutter)</string>
-    <string name="donate_bilibili_cancel">\@android:string/cancel</string>
     <string name="skip_foreground_app">Hopp over forgrunnsprogram</string>
     <string name="synthesize_adaptive_icons">Syntetiser tilpassningsdyktige ikoner</string>
     <string name="action_unfreeze_tag">Tiningsetikett</string>
@@ -126,7 +116,6 @@
     <string name="msg_guide">Sett et arbeidsmodus i innstillingene før frysing av programmer.</string>
     <string name="msg_remove_owner">Enhetseier vil fremdeles bli fjernet, det kan være vanskelig å sette det igjen etter fjerning.
 \nSkjulte programmer er skjult etter fjerning. Forsikre deg om at du har opphevet skjuling av viktige programmer.</string>
-    <string name="donate_bilibili_space">Mitt donasjonsforetak</string>
     <string name="action_select_all">Velg alt</string>
     <string name="mode_dhizuku_hide">Dhizuku — skjul</string>
     <string name="mode_dhizuku_suspend">Dhizuku — hvilemodus</string>

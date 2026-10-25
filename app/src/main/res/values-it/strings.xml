@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Hail</string>
+    <string name="app_name">Freeze</string>
     <string name="app_slogan">Freezedom!</string>
     <string name="title_home">Home</string>
     <string name="title_apps">Applicazioni</string>
@@ -11,7 +11,6 @@
     <string name="label_time">Ora di installazione</string>
     <string name="action_telegram">Gruppo Telegram</string>
     <string name="action_qq">Gruppo QQ</string>
-    <string name="action_donate">Dona</string>
     <string name="action_github">GitHub</string>
     <string name="action_translate">Traduci</string>
     <string name="action_licenses">Licenze</string>
@@ -61,16 +60,6 @@
     <string name="sort_name">Name</string>
     <string name="sort_install">Prima installazione</string>
     <string name="sort_update">Ultimo aggiornamento</string>
-    <string name="title_donate">Grazie!</string>
-    <string name="donate_alipay">Alipay</string>
-    <string name="donate_wechat">WeChat Pay</string>
-    <string name="donate_wechat_scan">Scansiona</string>
-    <string name="donate_bilibili">bilibili</string>
-    <string name="donate_bilibili_msg">Follow me on bilibili.</string>
-    <string name="donate_bilibili_space">My space</string>
-    <string name="donate_bilibili_cancel">@android:string/cancel</string>
-    <string name="donate_liberapay">Liberapay</string>
-    <string name="donate_paypal">PayPal</string>
     <string name="permission_denied">Permesso negato</string>
     <string name="app_not_installed">App non installata</string>
     <string name="activity_not_found">Attività da lanciare non trovata</string>

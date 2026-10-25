@@ -11,19 +11,9 @@ import org.json.JSONObject
 
 object HailData {
     const val URL_WHY_FREE_SOFTWARE = "https://www.gnu.org/philosophy/free-software-even-more-important.html"
-    const val URL_GITHUB_HAIL_2 = "https://github.com/codecodegogogo/hail_2"
+    const val URL_PROJECT_GITHUB = "https://github.com/codecodegogogo"
     const val URL_GITHUB = "https://github.com/aistra0528/Hail"
-    const val URL_README = "$URL_GITHUB#readme"
     const val URL_RELEASES = "$URL_GITHUB/releases"
-    const val URL_TELEGRAM = "https://t.me/+yvRXYTounDIxODFl"
-    const val URL_QQ = "http://qm.qq.com/cgi-bin/qm/qr?k=I2g_Ymanc6bQMo4cVKTG0knARE0twtSG"
-    const val URL_FDROID = "https://f-droid.org/packages/${BuildConfig.APPLICATION_ID}"
-    const val URL_ALIPAY = "https://qr.alipay.com/tsx02922ajwj6xekqyd1rbf"
-    const val URL_ALIPAY_API = "alipays://platformapi/startapp?saId=10000007&qrcode=$URL_ALIPAY"
-    const val URL_BILIBILI = "https://space.bilibili.com/9261272"
-    const val URL_LIBERAPAY = "https://liberapay.com/aistra0528"
-    const val URL_PAYPAL = "https://www.paypal.me/aistra0528"
-    const val URL_TRANSLATE = "https://hosted.weblate.org/engage/hail/"
     const val VERSION = "${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})"
     private const val KEY_ID = "id"
     const val KEY_TAG = "tag"
@@ -41,11 +31,6 @@ object HailData {
     const val FILTER_SYSTEM_APPS = "filter_system_apps"
     const val FILTER_FROZEN_APPS = "filter_frozen_apps"
     const val FILTER_UNFROZEN_APPS = "filter_unfrozen_apps"
-    private const val ICONLESS_SORT_BY = "iconless_sort_by"
-    const val ICONLESS_FILTER_USER_APPS = "iconless_filter_user_apps"
-    const val ICONLESS_FILTER_SYSTEM_APPS = "iconless_filter_system_apps"
-    const val ICONLESS_FILTER_HIDDEN_APPS = "iconless_filter_hidden_apps"
-    const val ICONLESS_FILTER_VISIBLE_APPS = "iconless_filter_visible_apps"
     const val OWNER = "owner_"
     const val DHIZUKU = "dhizuku_"
     const val SU = "su_"
@@ -84,15 +69,16 @@ object HailData {
     const val THEME_DARK = "theme_dark"
     val APP_THEME_VALUES = listOf(FOLLOW_SYSTEM, THEME_LIGHT, THEME_DARK)
     const val CALENDAR_DISGUISE = "calendar_disguise"
-    const val ICONLESS_LAUNCHER_ENABLED = "iconless_launcher_enabled"
     const val HOME_FONT_SIZE = "home_font_size_f"
+    const val TEXTLESS_MODE = "textless_mode"
+    const val HAPTIC_FEEDBACK = "haptic_feedback"
+    const val FLOATING_NAVIGATION_BAR = "floating_navigation_bar"
+    const val ACTION_BUTTON_POSITION = "action_button_position"
+    const val ACTION_BUTTON_BOTTOM_BAR = "bottom_bar"
+    const val ACTION_BUTTON_BOTTOM_RIGHT = "bottom_right"
+    val ACTION_BUTTON_POSITION_VALUES = listOf(ACTION_BUTTON_BOTTOM_BAR, ACTION_BUTTON_BOTTOM_RIGHT)
+    const val HOME_ICON_COUNT = "home_icon_count"
     const val FUZZY_SEARCH = "fuzzy_search"
-    const val ACTION_LOCK = "lock"
-    const val AUTO_FREEZE_AFTER_LOCK = "auto_freeze_after_lock"
-    const val AUTO_FREEZE_DELAY = "auto_freeze_delay_f"
-    const val SKIP_WHILE_CHARGING = "skip_while_charging"
-    const val SKIP_FOREGROUND_APP = "skip_foreground_app"
-    const val SKIP_NOTIFYING_APP = "skip_notifying_app"
 
     private val sp = PreferenceManager.getDefaultSharedPreferences(app)
     val sortBy get() = sp.getString(SORT_BY, SORT_NAME)
@@ -100,26 +86,17 @@ object HailData {
     val filterSystemApps get() = sp.getBoolean(FILTER_SYSTEM_APPS, false)
     val filterFrozenApps get() = sp.getBoolean(FILTER_FROZEN_APPS, true)
     val filterUnfrozenApps get() = sp.getBoolean(FILTER_UNFROZEN_APPS, true)
-    val iconlessSortBy get() = sp.getString(ICONLESS_SORT_BY, SORT_NAME)!!
-    val iconlessFilterUserApps get() = sp.getBoolean(ICONLESS_FILTER_USER_APPS, true)
-    val iconlessFilterSystemApps get() = sp.getBoolean(ICONLESS_FILTER_SYSTEM_APPS, false)
-    val iconlessFilterHiddenApps get() = sp.getBoolean(ICONLESS_FILTER_HIDDEN_APPS, true)
-    val iconlessFilterVisibleApps get() = sp.getBoolean(ICONLESS_FILTER_VISIBLE_APPS, true)
     val workingMode get() = sp.getString(WORKING_MODE, MODE_DEFAULT)!!
     val biometricLogin get() = sp.getBoolean(BIOMETRIC_LOGIN, false)
     val calendarDisguise get() = sp.getBoolean(CALENDAR_DISGUISE, true)
-    val iconlessLauncherEnabled get() = sp.getBoolean(ICONLESS_LAUNCHER_ENABLED, false)
     val appTheme get() = sp.getString(APP_THEME, FOLLOW_SYSTEM)!!
     val homeFontSize get() = sp.getFloat(HOME_FONT_SIZE, 14f)
+    val textlessMode get() = sp.getBoolean(TEXTLESS_MODE, false)
+    val hapticFeedback get() = sp.getBoolean(HAPTIC_FEEDBACK, true)
+    val floatingNavigationBar get() = sp.getBoolean(FLOATING_NAVIGATION_BAR, false)
+    val actionButtonPosition get() = sp.getString(ACTION_BUTTON_POSITION, ACTION_BUTTON_BOTTOM_BAR)!!
+    val homeIconCount get() = sp.getInt(HOME_ICON_COUNT, 5).coerceIn(3, 8)
     val fuzzySearch get() = sp.getBoolean(FUZZY_SEARCH, false)
-    var autoFreezeAfterLock
-        get() = sp.getBoolean(AUTO_FREEZE_AFTER_LOCK, false)
-        set(value) = sp.edit { putBoolean(AUTO_FREEZE_AFTER_LOCK, value) }
-    val autoFreezeDelay get() = sp.getFloat(AUTO_FREEZE_DELAY, 0f).toLong()
-    val skipWhileCharging get() = sp.getBoolean(SKIP_WHILE_CHARGING, false)
-    val skipForegroundApp get() = sp.getBoolean(SKIP_FOREGROUND_APP, false)
-    val skipNotifyingApp get() = sp.getBoolean(SKIP_NOTIFYING_APP, false)
-
     fun workingPermission(mode: String): String =
         WORKING_PERMISSION_VALUES.drop(1).firstOrNull { mode.startsWith(it) } ?: MODE_DEFAULT
 
@@ -146,7 +123,6 @@ object HailData {
     private val appsPath = "$dir/apps.json"
     private val tagsPath = "$dir/tags.json"
     private val tagWorkingActionsPath = "$dir/$KEY_TAG_WORKING_ACTIONS.json"
-    private val iconlessLauncherPath = "$dir/iconless_launcher.json"
 
     val checkedList: MutableList<AppInfo> by lazy {
         mutableListOf<AppInfo>().apply {
@@ -233,6 +209,16 @@ object HailData {
 
     fun tagWorkingAction(tagId: Int): String? = tagWorkingActions[tagId]
 
+    fun tagWorkingActionsSnapshot(): Map<Int, String> = tagWorkingActions.toMap()
+
+    fun restoreTagWorkingActions(actions: Map<Int, String>) {
+        tagWorkingActions.clear()
+        actions.forEach { (tagId, action) ->
+            if (action in WORKING_ACTION_VALUES) tagWorkingActions[tagId] = action
+        }
+        saveTagWorkingActions()
+    }
+
     fun tagWorkingMode(tagId: Int): String {
         val permission = workingPermission(workingMode)
         val action = tagWorkingAction(tagId)
@@ -279,50 +265,4 @@ object HailData {
 
     fun changeAppsFilter(filter: String, enabled: Boolean) = sp.edit { putBoolean(filter, enabled) }
 
-    fun changeIconlessAppsSort(sort: String) = sp.edit { putString(ICONLESS_SORT_BY, sort) }
-
-    fun changeIconlessAppsFilter(filter: String, enabled: Boolean) = sp.edit { putBoolean(filter, enabled) }
-
-    val iconlessLauncherEntries: MutableList<IconlessLauncherEntry> by lazy {
-        mutableListOf<IconlessLauncherEntry>().apply {
-            runCatching {
-                val json = JSONArray(HFiles.read(iconlessLauncherPath))
-                for (i in 0 until json.length()) {
-                    val item = json.getJSONObject(i)
-                    val components = item.optJSONArray("components") ?: JSONArray()
-                    add(
-                        IconlessLauncherEntry(
-                            packageName = item.getString(KEY_PACKAGE),
-                            components = List(components.length()) { index -> components.getString(index) },
-                            hidden = item.optBoolean("hidden", true),
-                            lastOperatedAt = item.optLong("last_operated_at", 0L)
-                        )
-                    )
-                }
-            }
-        }
-    }
-
-    fun saveIconlessLauncherEntries() {
-        if (!HFiles.exists(dir)) HFiles.createDirectories(dir)
-        HFiles.write(iconlessLauncherPath, JSONArray().run {
-            iconlessLauncherEntries.forEach {
-                put(
-                    JSONObject()
-                        .put(KEY_PACKAGE, it.packageName)
-                        .put("components", JSONArray(it.components))
-                        .put("hidden", it.hidden)
-                        .put("last_operated_at", it.lastOperatedAt)
-                )
-            }
-            toString()
-        })
-    }
 }
-
-data class IconlessLauncherEntry(
-    val packageName: String,
-    val components: List<String>,
-    val hidden: Boolean = true,
-    val lastOperatedAt: Long = 0L
-)

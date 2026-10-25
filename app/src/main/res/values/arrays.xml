@@ -8,26 +8,6 @@
         <item>90</item>
         <item>120</item>
     </integer-array>
-    <string-array name="home_action_entries">
-        <item>@string/action_launch</item>
-        <item>@string/action_freeze</item>
-        <item>@string/action_unfreeze</item>
-        <item>@string/action_deferred_task</item>
-        <item>@string/action_pin</item>
-        <item>@string/action_unpin</item>
-        <item>@string/action_whitelist</item>
-        <item>@string/action_remove_whitelist</item>
-        <item>@string/action_tag_set</item>
-        <item>@string/action_export_clipboard</item>
-        <item>@string/action_remove_home</item>
-        <item>@string/action_unfreeze_remove_home</item>
-    </string-array>
-    <string-array name="apps_action_entries">
-        <item>@string/action_details</item>
-        <item>@string/action_export_clipboard</item>
-        <item>@string/action_extract_apk</item>
-        <item>@string/action_uninstall</item>
-    </string-array>
     <string-array name="working_permission_entries">
         <item>@string/mode_default</item>
         <item>@string/working_permission_shizuku</item>
@@ -41,12 +21,5 @@
         <item>@string/follow_system</item>
         <item>@string/theme_light</item>
         <item>@string/theme_dark</item>
-    </string-array>
-    <string-array name="donate_payment_entries">
-        <item>@string/donate_alipay</item>
-        <item>@string/donate_wechat</item>
-        <item>@string/donate_bilibili</item>
-        <item>@string/donate_liberapay</item>
-        <item>@string/donate_paypal</item>
     </string-array>
 </resources>

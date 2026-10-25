@@ -3,7 +3,6 @@ package com.aistra.hail.receiver
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import com.aistra.hail.HailApp.Companion.app
 import com.aistra.hail.utils.HShizuku.setAppRestricted
 import com.aistra.hail.utils.HTarget
 
@@ -14,7 +13,6 @@ class UnsuspendedReceiver : BroadcastReceiver() {
                 intent.getStringExtra(Intent.EXTRA_PACKAGE_NAME)!!,
                 false
             )
-            app.setAutoFreezeService()
         }
     }
 

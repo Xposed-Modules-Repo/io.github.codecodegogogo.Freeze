@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">雹</string>
+    <string name="app_name">Freeze</string>
     <string name="app_slogan">实现冻结自由！</string>
     <string name="title_home">首頁</string>
     <string name="title_apps">應用</string>
@@ -12,7 +12,6 @@
     <string name="label_time">安裝時間</string>
     <string name="action_telegram">Telegram 群組</string>
     <string name="action_qq">QQ 群</string>
-    <string name="action_donate">捐贈</string>
     <string name="action_translate">翻譯</string>
     <string name="action_freeze_all">全部凍結</string>
     <string name="action_unfreeze">解凍</string>

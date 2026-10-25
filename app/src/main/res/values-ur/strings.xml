@@ -3,7 +3,7 @@
     <string name="nothing_here">یہاں کچھ بھی نہیں ہے</string>
     <string name="action_remove_whitelist">وائٹ لسٹ سے ہٹا دیں</string>
     <string name="action_import_app">ایپ درآمد کریں</string>
-    <string name="app_name">ہیل</string>
+    <string name="app_name">Freeze</string>
     <string name="app_slogan">فریزڈم!</string>
     <string name="title_home">گھر</string>
     <string name="title_apps">ایپس</string>
@@ -14,7 +14,6 @@
     <string name="label_time">انسٹال کرنے کا وقت</string>
     <string name="action_telegram">ٹیلیگرام گروپ</string>
     <string name="action_qq">کیو کیو گروپ</string>
-    <string name="action_donate">عطیہ کریں</string>
     <string name="action_freeze">منجمد</string>
     <string name="action_unfreeze">انجماد</string>
     <string name="action_deferred_task">موخر کام</string>
@@ -49,13 +48,6 @@
     <string name="filter_system_apps">سسٹم</string>
     <string name="filter_frozen_apps">منجمد</string>
     <string name="filter_unfrozen_apps">غیر منجمد</string>
-    <string name="donate_wechat">WeChat پے</string>
-    <string name="donate_wechat_scan">اسکین کریں</string>
-    <string name="donate_bilibili">bilibili</string>
-    <string name="donate_bilibili_msg">bilibili پر مجھے فالو کریں۔</string>
-    <string name="donate_bilibili_space">میری جگہ</string>
-    <string name="donate_liberapay">Liberapay</string>
-    <string name="donate_paypal">PayPal</string>
     <string name="permission_denied">اجازت نہیں دی گئی</string>
     <string name="activity_not_found">لانچ کی سرگرمی نہیں ملی</string>
     <plurals name="deferred_task_entry">
@@ -110,10 +102,7 @@
     <string name="sort_by">ترتیب دیں</string>
     <string name="sort_install">پہلے انسٹال کریں</string>
     <string name="sort_update">آخری اپ ڈیٹ</string>
-    <string name="donate_alipay">علیپے</string>
     <string name="sort_name">نام</string>
-    <string name="title_donate">شکریہ!</string>
-    <string name="donate_bilibili_cancel">\@android:string/کینسل</string>
     <string name="msg_unfreeze">غیر منجمد: %s</string>
     <string name="app_not_installed">ایپ انسٹال نہیں ہے</string>
     <string name="operation_failed">آپریشن ناکام ہو گیا: %s</string>

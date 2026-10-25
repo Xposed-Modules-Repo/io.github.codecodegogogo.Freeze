@@ -1,8 +1,41 @@
-/.gradle/
-/.idea/
-/build/
-/local.properties
-/signing.properties
-*.iml
+# Gradle
+.gradle/
+.kotlin/
+**/build/
+build/
+
+# Android SDK / signing
+local.properties
+signing.properties
 *.jks
 *.keystore
+
+# Generated APK / bundle artifacts
+*.apk
+*.aab
+*.ap_
+output-metadata.json
+
+# Android Studio / IntelliJ
+.idea/
+*.iml
+*.ipr
+*.iws
+.navigation/
+.fleet/
+
+# Native build output
+.cxx/
+.externalNativeBuild/
+
+# Test / capture output
+captures/
+
+# Logs and crash dumps
+*.log
+*.hprof
+
+# OS metadata
+.DS_Store
+Thumbs.db
+desktop.ini

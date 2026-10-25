@@ -33,7 +33,7 @@
     <string name="action_unpin">முள்நீக்கு</string>
     <string name="action_unfreeze_current">இயக்கம் காட்டு</string>
     <string name="action_unfreeze_tag">இயக்கக் குறிச்சொல்</string>
-    <string name="app_name">ஹெயில்</string>
+    <string name="app_name">Freeze</string>
     <string name="action_launch">ஏவுதல்</string>
     <string name="action_freeze">முடக்கம்</string>
     <string name="action_deferred_task">ஒத்திவைக்கப்பட்ட பணி</string>
@@ -47,7 +47,6 @@
     <string name="label_time">நேரத்தை நிறுவவும்</string>
     <string name="action_telegram">தந்தி குழு</string>
     <string name="action_qq">QQ குழு</string>
-    <string name="action_donate">நன்கொடை</string>
     <string name="action_github">கிட்ஹப்</string>
     <string name="action_translate">மொழிபெயர்த்திடு</string>
     <string name="action_licenses">உரிமங்கள்</string>
@@ -101,16 +100,6 @@
     <string name="sort_name">பெயர்</string>
     <string name="sort_install">முதல் நிறுவல்</string>
     <string name="sort_update">கடைசி புதுப்பிப்பு</string>
-    <string name="title_donate">நன்றி!</string>
-    <string name="donate_alipay">அலிபே</string>
-    <string name="donate_wechat">Wechat pay</string>
-    <string name="donate_wechat_scan">ச்கேன்</string>
-    <string name="donate_bilibili">பிலியேட்</string>
-    <string name="donate_bilibili_msg">பிலிபிலியில் என்னைப் பின்தொடரவும்.</string>
-    <string name="donate_bilibili_space">பித்தம் இடம்</string>
-    <string name="donate_bilibili_cancel">ரத்துசெய்</string>
-    <string name="donate_liberapay">லிபர்பே</string>
-    <string name="donate_paypal">பேபால்</string>
     <string name="permission_denied">இசைவு மறுக்கப்பட்டது</string>
     <string name="app_not_installed">பயன்பாடு நிறுவப்படவில்லை</string>
     <string name="activity_not_found">துவக்க செயல்பாடு கிடைக்கவில்லை</string>

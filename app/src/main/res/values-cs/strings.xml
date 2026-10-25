@@ -6,7 +6,6 @@
     <string name="label_default">Výchozí</string>
     <string name="label_version">Verze</string>
     <string name="action_qq">Skupina QQ</string>
-    <string name="action_donate">Přispět</string>
     <string name="action_github">GitHub</string>
     <string name="action_translate">Přeložit</string>
     <string name="action_licenses">Licence</string>
@@ -34,7 +33,7 @@
     <string name="mode_owner_hide">Majitel Zařízení - Skrýt</string>
     <string name="mode_su_suspend">Superuser - Suspendovat</string>
     <string name="mode_shizuku_disable">Shizuku - Deaktivovat</string>
-    <string name="app_name">Hail</string>
+    <string name="app_name">Freeze</string>
     <string name="title_home">Domů</string>
     <string name="action_telegram">Skupina telegram</string>
     <string name="action_tag_set">Nastavit štítek</string>

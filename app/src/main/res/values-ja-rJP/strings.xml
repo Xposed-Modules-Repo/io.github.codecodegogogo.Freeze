@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Hail</string>
+    <string name="app_name">Freeze</string>
     <string name="app_slogan">Freezedom!</string>
     <string name="title_home">ホーム</string>
     <string name="title_apps">アプリ</string>
@@ -11,7 +11,6 @@
     <string name="label_time">インストール日</string>
     <string name="action_telegram">Telegram グループ</string>
     <string name="action_qq">QQ グループ</string>
-    <string name="action_donate">サポートする</string>
     <string name="action_github">GitHub</string>
     <string name="action_translate">翻訳</string>
     <string name="action_licenses">ライセンス</string>
@@ -59,16 +58,6 @@
     <string name="sort_name">名前</string>
     <string name="sort_install">インストール日</string>
     <string name="sort_update">更新日</string>
-    <string name="title_donate">応援ありがとうございます！</string>
-    <string name="donate_alipay">Alipay</string>
-    <string name="donate_wechat">WeChat Pay</string>
-    <string name="donate_wechat_scan">スキャン</string>
-    <string name="donate_bilibili">ビリビリ動画</string>
-    <string name="donate_bilibili_msg">bilibiliチャンネルをフォローする</string>
-    <string name="donate_bilibili_space">ビリビリチャンネル</string>
-    <string name="donate_bilibili_cancel">@android:string/cancel</string>
-    <string name="donate_liberapay">Liberapay</string>
-    <string name="donate_paypal">PayPal</string>
     <string name="permission_denied">権限がありません</string>
     <string name="app_not_installed">アプリがインストールされていません</string>
     <string name="activity_not_found">起動アクティビティが見つかりません</string>

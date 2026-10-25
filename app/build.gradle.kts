@@ -15,14 +15,14 @@ android {
     }.standardOutput.asText.get().trim()
 
     namespace = "com.aistra.hail"
-    compileSdk = 36
+    compileSdk = 37
 
     defaultConfig {
         applicationId = "com.aistra.calendar"
-        minSdk = 23
+        minSdk = 24
         targetSdk = 36
-        versionCode = 2
-        versionName = "v1.2"
+        versionCode = 20000
+        versionName = "2.0.0"
     }
 
     buildTypes {
@@ -54,7 +54,6 @@ android {
         noCompress += "dex"
     }
     buildFeatures {
-        viewBinding = true
         buildConfig = true
         compose = true
     }
@@ -83,28 +82,22 @@ kotlin {
 dependencies {
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.activity.compose)
-    implementation(libs.androidx.material3)
     implementation(libs.androidx.material.icons.extended)
     implementation(libs.androidx.ui.tooling.preview)
     debugImplementation(libs.androidx.ui.tooling)
     implementation(libs.androidx.appcompat)
     implementation(libs.androidx.biometric.ktx)
-    implementation(libs.androidx.constraintlayout)
     implementation(libs.androidx.core.ktx)
-    implementation(libs.androidx.lifecycle.livedata.ktx)
-    implementation(libs.androidx.navigation.fragment.ktx)
-    implementation(libs.androidx.navigation.ui.ktx)
     implementation(libs.androidx.preference.ktx)
-    implementation(libs.androidx.swiperefreshlayout)
     implementation(libs.androidx.work.runtime.ktx)
     implementation(libs.pinyin4j)
     implementation(libs.material)
-    implementation(libs.insetter)
+    implementation(libs.miuix.preference)
+    implementation(libs.miuix.ui)
     implementation(libs.shizuku.api)
     implementation(libs.shizuku.provider)
     implementation(libs.dhizuku.api)
     implementation(libs.appiconloader)
-    implementation(libs.compose.preference)
     implementation(libs.commons.text)
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.hiddenapibypass)

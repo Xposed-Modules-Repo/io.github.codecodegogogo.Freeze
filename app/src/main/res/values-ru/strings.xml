@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Hail</string>
+    <string name="app_name">Freeze</string>
     <string name="app_slogan">Freezedom!</string>
     <string name="title_home">Главная</string>
     <string name="title_apps">Приложения</string>
@@ -11,7 +11,6 @@
     <string name="label_time">Время установки</string>
     <string name="action_telegram">Группа в Telegram</string>
     <string name="action_qq">Группа в QQ</string>
-    <string name="action_donate">Задонатить</string>
     <string name="action_github">GitHub</string>
     <string name="action_translate">Перевод</string>
     <string name="action_licenses">Лицензии</string>
@@ -60,16 +59,6 @@
     <string name="sort_name">Название</string>
     <string name="sort_install">Дата установки</string>
     <string name="sort_update">Дата обновления</string>
-    <string name="title_donate">Спасибо!</string>
-    <string name="donate_alipay">Alipay</string>
-    <string name="donate_wechat">WeChat Pay</string>
-    <string name="donate_wechat_scan">Сканировать</string>
-    <string name="donate_bilibili">Bilibili</string>
-    <string name="donate_bilibili_msg">Подпишитесь на мой Bilibili.</string>
-    <string name="donate_bilibili_space">Пространство Bilibili</string>
-    <string name="donate_bilibili_cancel">Отменить</string>
-    <string name="donate_liberapay">Liberapay</string>
-    <string name="donate_paypal">PayPal</string>
     <string name="permission_denied">Разрешение отклонено</string>
     <string name="app_not_installed">Приложение не установлено</string>
     <string name="activity_not_found">Активити для запуска не обнаружено</string>

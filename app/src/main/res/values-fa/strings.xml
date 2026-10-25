@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">هایل</string>
+    <string name="app_name">Freeze</string>
     <string name="app_slogan">یخبندان!</string>
     <string name="title_home">خانه</string>
     <string name="title_apps">برنامه‌ها</string>
@@ -11,7 +11,6 @@
     <string name="label_time">تاریخ نصب</string>
     <string name="action_telegram">گروه تلگرامی</string>
     <string name="action_qq">گروه کیوکیو</string>
-    <string name="action_donate">حمایت</string>
     <string name="action_github">گیت‌هاب</string>
     <string name="action_translate">ترجمه</string>
     <string name="action_licenses">پروانه‌ها</string>
@@ -58,14 +57,6 @@
     <string name="sort_name">نام</string>
     <string name="sort_install">نصب نخست</string>
     <string name="sort_update">آخرین بروزرسانی</string>
-    <string name="title_donate">سپاس از شما!</string>
-    <string name="donate_wechat">پرداخت وی‌چت</string>
-    <string name="donate_wechat_scan">اسکن</string>
-    <string name="donate_bilibili">بیلی‌بیلی</string>
-    <string name="donate_bilibili_msg">مرا در بیلی‌بیلی دنبال کنید.</string>
-    <string name="donate_bilibili_space">فضای بیلی‌بیلی</string>
-    <string name="donate_liberapay">لیبراپی</string>
-    <string name="donate_paypal">پی‌پل</string>
     <string name="app_not_installed">برنامه نصب نشد</string>
     <string name="shizuku_missing">شیزوکو نصب نیست :(</string>
     <string name="operation_failed">عملیات شکست خورد: %s</string>
@@ -94,8 +85,6 @@
     <string name="msg_imported">درون ریخته: %s</string>
     <string name="msg_set_owner">دستور زیر را از adb اجرا کنید:
 \n%s</string>
-    <string name="donate_alipay">علی‌پی</string>
-    <string name="donate_bilibili_cancel">دست کشیدن</string>
     <string name="synthesize_adaptive_icons">آمیختن آیکون‌های سازگار</string>
     <string name="skip_notifying_app">رد کردن برنامه‌ی دارای نوتیفیکیشن</string>
     <string name="action_terminal">ترمینال</string>

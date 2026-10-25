@@ -31,11 +31,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -61,11 +56,14 @@ import androidx.core.view.WindowCompat
 import com.aistra.hail.app.DisguiseSession
 import com.aistra.hail.app.HailData
 import com.aistra.hail.ui.main.MainActivity
+import com.aistra.hail.ui.theme.AppTheme
 import java.text.DateFormatSymbols
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.GregorianCalendar
 import java.util.Locale
+import top.yukonga.miuix.kmp.basic.Text
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 class CalendarActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -89,26 +87,6 @@ class CalendarActivity : ComponentActivity() {
     }
 }
 
-private val CalendarBlue = Color(0xFF0A7CFF)
-private val CalendarLightScheme = lightColorScheme(
-    primary = CalendarBlue,
-    onPrimary = Color.White,
-    background = Color.White,
-    onBackground = Color(0xFF111318),
-    surface = Color.White,
-    onSurface = Color(0xFF111318),
-    onSurfaceVariant = Color(0xFF686B73)
-)
-private val CalendarDarkScheme = darkColorScheme(
-    primary = CalendarBlue,
-    onPrimary = Color.White,
-    background = Color.Black,
-    onBackground = Color(0xFFF5F7FA),
-    surface = Color.Black,
-    onSurface = Color(0xFFF5F7FA),
-    onSurfaceVariant = Color(0xFFB5B8C0)
-)
-
 @Composable
 private fun CalendarTheme(content: @Composable () -> Unit) {
     val dark = androidx.compose.foundation.isSystemInDarkTheme()
@@ -120,7 +98,7 @@ private fun CalendarTheme(content: @Composable () -> Unit) {
             isAppearanceLightNavigationBars = !dark
         }
     }
-    MaterialTheme(colorScheme = if (dark) CalendarDarkScheme else CalendarLightScheme, content = content)
+    AppTheme(darkTheme = dark, dynamicColor = false, content = content)
 }
 
 @Composable
@@ -136,11 +114,14 @@ private fun CalendarScreen(onReveal: () -> Unit) {
         visibleMonth = calendar.get(Calendar.MONTH)
     }
 
-    Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
-        Box(
-            modifier = Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding(),
-            contentAlignment = Alignment.TopCenter
-        ) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MiuixTheme.colorScheme.surface)
+            .statusBarsPadding()
+            .navigationBarsPadding(),
+        contentAlignment = Alignment.TopCenter,
+    ) {
             Column(
                 modifier = Modifier.fillMaxWidth().widthIn(max = 680.dp).padding(horizontal = 28.dp, vertical = 24.dp)
             ) {
@@ -157,7 +138,7 @@ private fun CalendarScreen(onReveal: () -> Unit) {
                 ) {
                     Text(
                         text = visibleYear.toString(),
-                        color = MaterialTheme.colorScheme.onBackground,
+                        color = MiuixTheme.colorScheme.onSurface,
                         fontSize = 38.sp,
                         fontWeight = FontWeight.Bold
                     )
@@ -224,7 +205,7 @@ private fun CalendarScreen(onReveal: () -> Unit) {
                         ) {
                             Text(
                                 text = monthName(year, month),
-                                color = MaterialTheme.colorScheme.onBackground,
+                                color = MiuixTheme.colorScheme.onSurface,
                                 fontSize = 24.sp,
                                 fontWeight = FontWeight.SemiBold
                             )
@@ -240,7 +221,6 @@ private fun CalendarScreen(onReveal: () -> Unit) {
                     }
                 }
             }
-        }
     }
 }
 
@@ -259,7 +239,7 @@ private fun WeekdayHeader() {
             Text(
                 text = label,
                 modifier = Modifier.weight(1f),
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
                 fontSize = 15.sp,
                 fontWeight = FontWeight.Medium,
                 textAlign = TextAlign.Center
@@ -310,15 +290,15 @@ private fun MonthGrid(year: Int, month: Int, today: Calendar) {
                                         modifier = Modifier
                                             .size(cellSize.coerceIn(40.dp, 42.dp))
                                             .background(
-                                                if (isToday) MaterialTheme.colorScheme.primary else Color.Transparent,
+                                                if (isToday) MiuixTheme.colorScheme.primary else Color.Transparent,
                                                 CircleShape
                                             ),
                                         contentAlignment = Alignment.Center
                                     ) {
                                         Text(
                                             text = day.toString(),
-                                            color = if (isToday) MaterialTheme.colorScheme.onPrimary
-                                            else MaterialTheme.colorScheme.onBackground,
+                                            color = if (isToday) MiuixTheme.colorScheme.onPrimary
+                                            else MiuixTheme.colorScheme.onSurface,
                                             fontSize = fontSize,
                                             fontWeight = if (isToday) FontWeight.SemiBold else FontWeight.Medium,
                                             textAlign = TextAlign.Center
@@ -332,7 +312,7 @@ private fun MonthGrid(year: Int, month: Int, today: Calendar) {
                                     if (lunar != null) {
                                         Text(
                                             text = lunar,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
                                             fontSize = 13.sp,
                                             lineHeight = 18.sp,
                                             textAlign = TextAlign.Center,

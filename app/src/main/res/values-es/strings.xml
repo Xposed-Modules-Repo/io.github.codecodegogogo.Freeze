@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Hail</string>
+    <string name="app_name">Freeze</string>
     <string name="app_slogan">¡Freezedom!</string>
     <string name="title_home">Inicio</string>
     <string name="title_apps">Aplicaciones</string>
@@ -11,7 +11,6 @@
     <string name="label_time">Fecha de instalación</string>
     <string name="action_telegram">Grupo de Telegram</string>
     <string name="action_qq">Grupo en QQ</string>
-    <string name="action_donate">Donar</string>
     <string name="action_github">GitHub</string>
     <string name="action_translate">Traducir</string>
     <string name="action_licenses">Licencias</string>
@@ -59,16 +58,6 @@
     <string name="sort_name">Nombre</string>
     <string name="sort_install">Primera instalación</string>
     <string name="sort_update">Fecha de actualización</string>
-    <string name="title_donate">¡Gracias!</string>
-    <string name="donate_alipay">Alipay</string>
-    <string name="donate_wechat">WeChat Pay</string>
-    <string name="donate_wechat_scan">Escanear</string>
-    <string name="donate_bilibili">Bilibili</string>
-    <string name="donate_bilibili_msg">Sígueme en Bilibili.</string>
-    <string name="donate_bilibili_space">Espacio en Bilibili</string>
-    <string name="donate_bilibili_cancel">Cancelar</string>
-    <string name="donate_liberapay">Liberapay</string>
-    <string name="donate_paypal">PayPal</string>
     <string name="permission_denied">Permiso denegado</string>
     <string name="app_not_installed">Aplicación no instalada</string>
     <string name="activity_not_found">Actividad de inicio no encontrada</string>

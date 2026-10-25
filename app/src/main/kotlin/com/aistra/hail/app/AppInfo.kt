@@ -14,8 +14,6 @@ class AppInfo(
 
     val applicationInfo: ApplicationInfo? get() = HPackages.getApplicationInfoOrNull(packageName)
     val name get() = applicationInfo?.loadLabel(app.packageManager) ?: packageName
-    val state
-        get() = state(HailData.workingMode)
 
     fun state(workingMode: String): State = when {
             applicationInfo == null -> State.NOT_FOUND

@@ -2,18 +2,11 @@ package com.aistra.hail
 
 import android.app.Application
 import android.app.UiModeManager
-import android.content.ComponentName
-import android.content.Context
-import android.content.Intent
-import android.content.pm.PackageManager
 import android.content.pm.ShortcutManager
 import android.os.Build
 import androidx.appcompat.app.AppCompatDelegate
-import androidx.core.content.ContextCompat
 import androidx.core.content.getSystemService
-import com.aistra.hail.app.AppManager
 import com.aistra.hail.app.HailData
-import com.aistra.hail.services.AutoFreezeService
 import com.aistra.hail.utils.HDhizuku
 import com.aistra.hail.utils.HTarget
 
@@ -24,31 +17,8 @@ class HailApp : Application() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N_MR1) {
             getSystemService<ShortcutManager>()?.removeAllDynamicShortcuts()
         }
-        // DirtyDataUpdater.update(app)
         if (!HTarget.S) setAppTheme(HailData.appTheme)
         if (HailData.workingMode.startsWith(HailData.DHIZUKU)) HDhizuku.init()
-    }
-
-    fun setAutoFreezeService(autoFreezeAfterLock: Boolean = HailData.autoFreezeAfterLock, context: Context = app) {
-        val start = autoFreezeAfterLock && HailData.checkedList.any {
-            it.packageName != packageName && it.applicationInfo != null && !AppManager.isAppFrozen(it.packageName) && !it.whitelisted
-        }
-        val intent = Intent(app, AutoFreezeService::class.java)
-        if (start) {
-            setAutoFreezeServiceEnabled(true)
-            ContextCompat.startForegroundService(context, intent)
-        } else {
-            stopService(intent)
-            setAutoFreezeServiceEnabled(false)
-        }
-    }
-
-    fun setAutoFreezeServiceEnabled(enabled: Boolean) {
-        packageManager.setComponentEnabledSetting(
-            ComponentName(app, AutoFreezeService::class.java),
-            if (enabled) PackageManager.COMPONENT_ENABLED_STATE_ENABLED else PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
-            PackageManager.DONT_KILL_APP
-        )
     }
 
     fun setAppTheme(theme: String) {

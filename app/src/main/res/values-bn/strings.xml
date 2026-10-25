@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Hail</string>
+    <string name="app_name">Freeze</string>
     <string name="app_slogan">ফ্রিজেই মুক্তি!</string>
     <string name="title_home">হোম</string>
     <string name="title_apps">অ্যাপস</string>
@@ -11,7 +11,6 @@
     <string name="label_time">ইন্সটলের সময়</string>
     <string name="action_telegram">টেলিগ্রাম গ্রুপ</string>
     <string name="action_qq">QQ গ্রুপ</string>
-    <string name="action_donate">দান করুন</string>
     <string name="action_github">গিটহাব</string>
     <string name="action_translate">অনুবাদ করুন</string>
     <string name="action_licenses">লাইসেন্স-সমূহ</string>
