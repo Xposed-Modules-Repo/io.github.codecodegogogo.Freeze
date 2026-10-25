@@ -101,5 +101,8 @@ dependencies {
     implementation(libs.commons.text)
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.hiddenapibypass)
-    compileOnly(libs.libxposed.api)
+    compileOnly(libs.xposed.api)
+    testImplementation(libs.junit)
+    testImplementation(libs.robolectric)
+    testImplementation(libs.xposed.api)
 }

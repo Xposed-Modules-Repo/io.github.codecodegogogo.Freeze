@@ -79,6 +79,7 @@ object HailData {
     val ACTION_BUTTON_POSITION_VALUES = listOf(ACTION_BUTTON_BOTTOM_BAR, ACTION_BUTTON_BOTTOM_RIGHT)
     const val HOME_ICON_COUNT = "home_icon_count"
     const val FUZZY_SEARCH = "fuzzy_search"
+    const val MIPUSH_ENHANCE = "mipush_enhance"
 
     private val sp = PreferenceManager.getDefaultSharedPreferences(app)
     val sortBy get() = sp.getString(SORT_BY, SORT_NAME)
@@ -97,6 +98,7 @@ object HailData {
     val actionButtonPosition get() = sp.getString(ACTION_BUTTON_POSITION, ACTION_BUTTON_BOTTOM_BAR)!!
     val homeIconCount get() = sp.getInt(HOME_ICON_COUNT, 5).coerceIn(3, 8)
     val fuzzySearch get() = sp.getBoolean(FUZZY_SEARCH, false)
+    val mipushEnhance get() = sp.getBoolean(MIPUSH_ENHANCE, true)
     fun workingPermission(mode: String): String =
         WORKING_PERMISSION_VALUES.drop(1).firstOrNull { mode.startsWith(it) } ?: MODE_DEFAULT
 

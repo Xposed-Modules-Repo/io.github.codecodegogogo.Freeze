@@ -9,11 +9,14 @@ import androidx.core.content.getSystemService
 import com.aistra.hail.app.HailData
 import com.aistra.hail.utils.HDhizuku
 import com.aistra.hail.utils.HTarget
+import com.aistra.hail.xposed.XposedSettingsSync
 
 class HailApp : Application() {
     override fun onCreate() {
         super.onCreate()
         app = this
+        XposedSettingsSync.prepare(this)
+        XposedSettingsSync.start(HailData.mipushEnhance)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N_MR1) {
             getSystemService<ShortcutManager>()?.removeAllDynamicShortcuts()
         }

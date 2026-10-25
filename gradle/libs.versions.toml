@@ -17,7 +17,9 @@ pinyin4j = "2.5.1"
 preferenceKtx = "1.2.1"
 shizuku = "13.1.5"
 workRuntimeKtx = "2.11.0"
-libxposed = "102.0.0"
+xposed = "82"
+junit = "4.13.2"
+robolectric = "4.14.1"
 
 [libraries]
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "activity" }
@@ -41,7 +43,9 @@ miuix-ui = { module = "top.yukonga.miuix.kmp:miuix-ui", version.ref = "miuix" }
 pinyin4j = { module = "com.belerweb:pinyin4j", version.ref = "pinyin4j" }
 shizuku-api = { module = "dev.rikka.shizuku:api", version.ref = "shizuku" }
 shizuku-provider = { module = "dev.rikka.shizuku:provider", version.ref = "shizuku" }
-libxposed-api = { module = "io.github.libxposed:api", version.ref = "libxposed" }
+xposed-api = { module = "de.robv.android.xposed:api", version.ref = "xposed" }
+junit = { module = "junit:junit", version.ref = "junit" }
+robolectric = { module = "org.robolectric:robolectric", version.ref = "robolectric" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "androidGradlePlugin" }

@@ -20,11 +20,8 @@
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
 
--dontwarn io.github.libxposed.annotation.**
--adaptresourcefilecontents META-INF/xposed/java_init.list
--keep,allowoptimization,allowobfuscation public class * extends io.github.libxposed.api.XposedModule {
-    public <init>();
-}
+# The reference module's Xposed callbacks and reflection helpers must stay intact in Release.
+-keep class com.aistra.hail.xposed.** { *; }
 
 -keep class com.aistra.hail.utils.ComponentStateCommand {
     public static void main(java.lang.String[]);

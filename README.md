@@ -85,9 +85,21 @@ Freeze 是基于 [Hail](https://github.com/aistra0528/Hail) 修改的 Android �
 
 恢复前会要求确认，恢复完成后会重新加载设置和列表。
 
-## MiPush Enhance
+## MiPush 通知
 
-支持 [New MiPush Enhance](https://github.com/Xposed-Modules-Repo/io.github.codecodegogogo.newmipushenhance) 冻结推送。使用时需按模块说明配置 LSPosed 作用域；若标签单独选择了“停用”，该标签内的应用也可正常处理。
+Freeze 直接移植了 New MiPush Enhance 的 Java 接收与点击代码，沿用传统 Xposed 入口，不再依赖独立模块。
+
+- “设置 > 自定义 > MiPush”默认开启。
+- 在 LSPosed 中启用 Freeze 模块，并勾选“系统框架”和“小米服务框架”。
+- 接收通知时不解冻应用；点击时解冻目标应用、清除停止状态，并重放原通知的跳转请求。
+- 首次发送失败后，依次等待 1.6 秒、0.9 秒重试；仍失败时保留原通知的页面参数进行启动，服务类通知则解析 MiPush 的页面、Intent 或网页跳转信息。
+- 该能力主要适配 Root 停用模式；应用本身必须接入 MiPush。
+- 未接入 MiPush 的应用不会因此收到推送。
+- 从旧实现升级时，在 LSPosed 中重新启用 Freeze，确认作用域后重启，再打开 Freeze 一次同步开关。测试时不要同时启用独立的 New MiPush Enhance 模块。
+
+源码来自 [New-MiPush-Enhance](https://github.com/codecodegogogo/New-MiPush-Enhance)。保留原版接收器查询的占位返回值，不新增安全中心作用域；不包含原模块的自动冻结策略。桌面作用域仅供原有的桌面启动解冻使用。
+
+`python tools/mipush_reference.py` 可与本地原项目核对移植代码；原版方法指纹也纳入单元测试，避免再次改写通知处理链路。
 
 ## 与原版的差异
 

@@ -30,6 +30,7 @@ import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.DarkMode
 import androidx.compose.material.icons.outlined.Fingerprint
 import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.outlined.NotificationsActive
 import androidx.compose.material.icons.outlined.Restore
 import androidx.compose.material.icons.outlined.Terminal
 import androidx.compose.material.icons.outlined.TextFields
@@ -74,6 +75,7 @@ import com.aistra.hail.utils.HPolicy
 import com.aistra.hail.utils.HShell
 import com.aistra.hail.utils.HTarget
 import com.aistra.hail.utils.HUI
+import com.aistra.hail.xposed.XposedSettingsSync
 import com.rosan.dhizuku.api.Dhizuku
 import com.rosan.dhizuku.api.DhizukuRequestPermissionListener
 import kotlinx.coroutines.Dispatchers
@@ -133,6 +135,7 @@ fun SettingsScreen(
         HailData.ACTION_BUTTON_BOTTOM_BAR,
     )
     val fuzzySearch = rememberBooleanPreference(HailData.FUZZY_SEARCH, false)
+    val mipushEnhance = rememberBooleanPreference(HailData.MIPUSH_ENHANCE, true)
 
     var messageDialog by remember { mutableStateOf<MessageDialog?>(null) }
     var showTerminal by remember { mutableStateOf(false) }
@@ -516,6 +519,15 @@ fun SettingsScreen(
 
             item {
                 HailGroup(title = stringResource(R.string.title_customize)) {
+                    SwitchPreference(
+                        checked = mipushEnhance.first.value,
+                        onCheckedChange = {
+                            mipushEnhance.second(it)
+                            XposedSettingsSync.update(it)
+                        },
+                        title = stringResource(R.string.mipush_enhance),
+                        startAction = { PreferenceIcon(Icons.Outlined.NotificationsActive) },
+                    )
                     SwitchPreference(
                         checked = fuzzySearch.first.value,
                         onCheckedChange = fuzzySearch.second,

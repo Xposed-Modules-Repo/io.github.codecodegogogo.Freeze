@@ -44,6 +44,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -116,6 +117,8 @@ import top.yukonga.miuix.kmp.theme.MiuixTheme
 import top.yukonga.miuix.kmp.window.WindowBottomSheet
 import top.yukonga.miuix.kmp.window.WindowDialog
 import kotlin.math.roundToInt
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 private data class HomeMessage(
     val title: String? = null,
@@ -137,6 +140,7 @@ fun HomeScreen(
 ) {
     val context = LocalContext.current
     val resources = LocalResources.current
+    val scope = rememberCoroutineScope()
     val actionButtonInBottomBar = rememberStringPreference(
         HailData.ACTION_BUTTON_POSITION,
         HailData.ACTION_BUTTON_BOTTOM_BAR,
@@ -235,6 +239,10 @@ fun HomeScreen(
 
     fun refresh() {
         dataVersion++
+        scope.launch {
+            delay(350)
+            dataVersion++
+        }
     }
 
     fun removeFromHome(info: AppInfo, save: Boolean = true) {
@@ -560,6 +568,7 @@ fun HomeScreen(
                                 HailData.tagWorkingMode(it.second)
                             } ?: HailData.workingMode,
                             appLabels = appLabels,
+                            refreshToken = dataVersion,
                             contentPadding = PaddingValues(
                                 start = 12.dp,
                                 end = 12.dp,
@@ -587,6 +596,7 @@ fun HomeScreen(
                         multiselect = multiselect,
                         workingMode = currentTagWorkingMode,
                         appLabels = appLabels,
+                        refreshToken = dataVersion,
                         modifier = Modifier.fillMaxSize(),
                         contentPadding = PaddingValues(
                             start = 12.dp,
@@ -1194,6 +1204,7 @@ private fun AppGrid(
     multiselect: Boolean,
     workingMode: String,
     appLabels: Map<String, String>,
+    refreshToken: Int,
     modifier: Modifier = Modifier,
     contentPadding: PaddingValues = PaddingValues(12.dp),
     onClick: (AppInfo) -> Unit,
@@ -1226,7 +1237,9 @@ private fun AppGrid(
                 val hapticClick = rememberHapticClick { onClick(info) }
                 val interactionSource = remember { MutableInteractionSource() }
                 val isSelected = info in selected
-                val state = info.state(workingMode)
+                val state = remember(info.packageName, workingMode, refreshToken) {
+                    info.state(workingMode)
+                }
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()

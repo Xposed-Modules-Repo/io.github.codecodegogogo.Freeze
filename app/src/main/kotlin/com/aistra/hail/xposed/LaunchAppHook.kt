@@ -11,14 +11,19 @@ import androidx.annotation.RequiresApi
 import com.aistra.hail.BuildConfig
 import com.aistra.hail.app.HailApi
 import com.aistra.hail.utils.HTarget
-import io.github.libxposed.api.XposedInterface
-import io.github.libxposed.api.XposedModule
-import io.github.libxposed.api.XposedModuleInterface
+import de.robv.android.xposed.IXposedHookLoadPackage
+import de.robv.android.xposed.XC_MethodHook
+import de.robv.android.xposed.XposedBridge
+import de.robv.android.xposed.callbacks.XC_LoadPackage
 
-class LaunchAppHook : XposedModule() {
-    @Throws(Throwable::class)
-    override fun onPackageLoaded(param: XposedModuleInterface.PackageLoadedParam) {
-        if (!HTarget.O || !param.isFirstPackage || param.packageName == BuildConfig.APPLICATION_ID) {
+class LaunchAppHook : IXposedHookLoadPackage {
+    override fun handleLoadPackage(param: XC_LoadPackage.LoadPackageParam) {
+        if (param.packageName == "android" || param.packageName == "com.xiaomi.xmsf") {
+            XposedBridge.log("Freeze-MiPush/reference: classic entry loaded in ${param.processName}")
+            MiPushNotificationHook().handleLoadPackage(param)
+            return
+        }
+        if (!HTarget.O || !param.isFirstApplication || param.packageName == BuildConfig.APPLICATION_ID) {
             return
         }
         hookLauncherApp()
@@ -26,29 +31,34 @@ class LaunchAppHook : XposedModule() {
 
     @RequiresApi(Build.VERSION_CODES.O)
     private fun hookLauncherApp() {
-        hook(
+        val beforeLaunch = object : XC_MethodHook() {
+            override fun beforeHookedMethod(param: MethodHookParam) {
+                unsuspendBeforeLaunch(param)
+            }
+        }
+        XposedBridge.hookMethod(
             Activity::class.java.getMethod(
                 "startActivityForResult", Intent::class.java, Int::class.java, Bundle::class.java
-            )
-        ).intercept { unsuspendBeforeLaunch(it) }
-        hook(
+            ), beforeLaunch,
+        )
+        XposedBridge.hookMethod(
             TileService::class.java.getMethod(
                 "startActivityAndCollapse", Intent::class.java
-            )
-        ).intercept { unsuspendBeforeLaunch(it) }
-        hook(
+            ), beforeLaunch,
+        )
+        XposedBridge.hookMethod(
             ContextWrapper::class.java.getMethod(
                 "startActivity", Intent::class.java
-            )
-        ).intercept { unsuspendBeforeLaunch(it) }
-        hook(
+            ), beforeLaunch,
+        )
+        XposedBridge.hookMethod(
             ContextWrapper::class.java.getMethod(
                 "startActivity", Intent::class.java, Bundle::class.java
-            )
-        ).intercept { unsuspendBeforeLaunch(it) }
+            ), beforeLaunch,
+        )
     }
 
-    fun unsuspendBeforeLaunch(param: XposedInterface.Chain): Any {
+    private fun unsuspendBeforeLaunch(param: XC_MethodHook.MethodHookParam) {
         if (param.args.isNotEmpty() && param.args[0] != null) {
             val intent = param.args[0] as Intent
             var packageName = intent.getPackage()
@@ -61,7 +71,6 @@ class LaunchAppHook : XposedModule() {
                 unsuspendApp(context, packageName)
             }
         }
-        return param.proceed()
     }
 
     private fun unsuspendApp(context: Context, packageName: String) {

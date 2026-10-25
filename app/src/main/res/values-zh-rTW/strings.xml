@@ -207,6 +207,7 @@
     <string name="mode_island_suspend">Island/Insular - 暫停</string>
     <string name="nine_key">九鍵搜尋</string>
     <string name="fuzzy_search">模糊搜索</string>
+    <string name="mipush_enhance">MiPush</string>
     <string name="action_reinstall">重新安裝</string>
     <string name="app_theme">應用程式主題</string>
     <string name="follow_system">遵循系統</string>
