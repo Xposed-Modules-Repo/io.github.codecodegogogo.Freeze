@@ -23,6 +23,12 @@ class MiPushSettingsProviderTest {
             .create()
             .get()
 
+        preferences.edit().clear().commit()
+        assertFalse(
+            provider.call(MiPushPreferences.METHOD_IS_ENABLED, null, null)!!
+                .getBoolean(MiPushPreferences.KEY_ENABLED, true),
+        )
+
         preferences.edit().putBoolean(MiPushPreferences.KEY_ENABLED, false).commit()
         assertFalse(
             provider.call(MiPushPreferences.METHOD_IS_ENABLED, null, null)!!

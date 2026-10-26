@@ -1,6 +1,5 @@
 package com.aistra.hail.xposed
 
-import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
@@ -17,27 +16,20 @@ object XposedSettingsSync {
         this.context = context.applicationContext
         // API 93 redirects preferences to LSPosed's directory. Preserve existing UI/mode settings.
         migrateLegacyPreferences(context)
-        makeMipushPreferencesReadable()
     }
 
     fun start(defaultValue: Boolean) = update(defaultValue)
 
-    @Suppress("DEPRECATION")
-    @SuppressLint("WorldReadableFiles")
     fun update(value: Boolean) {
-        val preferences = try {
-            context.getSharedPreferences(MiPushPreferences.FILE_NAME, Context.MODE_WORLD_READABLE)
-        } catch (_: SecurityException) {
-            context.getSharedPreferences(MiPushPreferences.FILE_NAME, Context.MODE_PRIVATE)
+        listOf("android", "com.xiaomi.xmsf").forEach { packageName ->
+            runCatching {
+                context.sendBroadcast(
+                    Intent(MiPushPreferences.ACTION_SETTINGS_CHANGED)
+                        .setPackage(packageName)
+                        .putExtra(MiPushPreferences.KEY_ENABLED, value),
+                )
+            }.onFailure { Log.w("Freeze-MiPush", "Cannot broadcast MiPush switch", it) }
         }
-        val saved = preferences.edit().putBoolean(MiPushPreferences.KEY_ENABLED, value).commit()
-        if (!saved) Log.w("Freeze-MiPush", "Cannot persist MiPush switch")
-        makeMipushPreferencesReadable()
-        context.sendBroadcast(
-            Intent(MiPushPreferences.ACTION_SETTINGS_CHANGED)
-                .setPackage("android")
-                .putExtra(MiPushPreferences.KEY_ENABLED, value),
-        )
     }
 
     internal fun migrateLegacyPreferences(context: Context) {
@@ -54,23 +46,6 @@ object XposedSettingsSync {
             values.forEach { (key, value) -> putValue(editor, key, value) }
             check(editor.commit()) { "Cannot persist migrated preferences" }
         }.onFailure { Log.w("Freeze-MiPush", "Preference migration failed; original file was kept", it) }
-    }
-
-    /**
-     * API 93 keeps settings in an LSPosed-owned directory instead of the module's app data
-     * directory. XSharedPreferences needs the directory traversal bits to read it.
-     */
-    private fun makeMipushPreferencesReadable() {
-        try {
-            val dataDir = File(context.applicationInfo.dataDir)
-            val prefsDir = File(dataDir, "shared_prefs")
-            dataDir.setReadable(true, false)
-            dataDir.setExecutable(true, false)
-            prefsDir.setReadable(true, false)
-            prefsDir.setExecutable(true, false)
-            File(prefsDir, "${MiPushPreferences.FILE_NAME}.xml").setReadable(true, false)
-        } catch (_: Throwable) {
-        }
     }
 
     private fun readLegacyPreferences(file: File): Map<String, Any> = file.inputStream().use { input ->

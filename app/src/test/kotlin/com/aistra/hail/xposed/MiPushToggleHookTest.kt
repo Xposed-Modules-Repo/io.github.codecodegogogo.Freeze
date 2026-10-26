@@ -1,18 +1,28 @@
 package com.aistra.hail.xposed
 
 import android.app.Application
+import android.content.ContentProvider
+import android.content.ContentValues
 import android.content.Intent
+import android.database.Cursor
+import android.net.Uri
+import android.os.Bundle
 import de.robv.android.xposed.XC_MethodHook
 import de.robv.android.xposed.callbacks.XCallback
+import java.lang.reflect.Modifier
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
+import org.robolectric.RuntimeEnvironment
 import org.robolectric.annotation.Config
 import org.robolectric.annotation.Implementation
 import org.robolectric.annotation.Implements
-import org.junit.Assert.assertFalse
-import org.junit.Assert.assertTrue
+import org.robolectric.shadows.ShadowContentResolver
 
 @RunWith(RobolectricTestRunner::class)
 @Config(
@@ -38,6 +48,62 @@ class MiPushToggleHookTest {
                 .putExtra(MiPushPreferences.KEY_ENABLED, false),
         )
         assertFalse(MiPushPreferences.isEnabled())
+    }
+
+    @Test
+    fun unrelatedBroadcastDoesNotChangeTheSwitch() {
+        MiPushPreferences.updateFromBroadcast(
+            Intent(MiPushPreferences.ACTION_SETTINGS_CHANGED)
+                .putExtra(MiPushPreferences.KEY_ENABLED, true),
+        )
+        MiPushPreferences.updateFromBroadcast(Intent("com.example.UNRELATED"))
+        assertTrue(MiPushPreferences.isEnabled())
+    }
+
+    @Test
+    fun preferenceStateDoesNotUseAClassMonitor() {
+        assertFalse(
+            Modifier.isSynchronized(
+                MiPushPreferences::class.java
+                    .getDeclaredMethod("isEnabled")
+                    .modifiers,
+            ),
+        )
+        assertFalse(
+            Modifier.isSynchronized(
+                MiPushPreferences::class.java
+                    .getDeclaredMethod("updateFromBroadcast", Intent::class.java)
+                    .modifiers,
+            ),
+        )
+    }
+
+    @Test
+    fun blockedProviderQueryDoesNotBlockTheHookThread() {
+        val provider = BlockingProvider()
+        ShadowContentResolver.registerProviderInternal(
+            MiPushPreferences.PROVIDER_AUTHORITY,
+            provider,
+        )
+        MiPushPreferences.updateFromBroadcast(
+            Intent(MiPushPreferences.ACTION_SETTINGS_CHANGED)
+                .putExtra(MiPushPreferences.KEY_ENABLED, false),
+        )
+
+        try {
+            MiPushPreferences.setClientContext(RuntimeEnvironment.getApplication())
+            assertTrue(provider.started.await(2, TimeUnit.SECONDS))
+
+            val startedAt = System.nanoTime()
+            val enabled = MiPushPreferences.isEnabled()
+            val elapsedMs = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startedAt)
+
+            assertFalse(enabled)
+            assertTrue("isEnabled blocked for ${elapsedMs}ms", elapsedMs < 500)
+        } finally {
+            provider.release.countDown()
+            provider.finished.await(2, TimeUnit.SECONDS)
+        }
     }
 
     @Test
@@ -96,6 +162,47 @@ class MiPushToggleHookTest {
         override fun afterEnabled(param: MethodHookParam) { afterCalls++ }
         fun before(param: MethodHookParam) = beforeHookedMethod(param)
         fun after(param: MethodHookParam) = afterHookedMethod(param)
+    }
+
+    private class BlockingProvider : ContentProvider() {
+        val started = CountDownLatch(1)
+        val release = CountDownLatch(1)
+        val finished = CountDownLatch(1)
+
+        override fun onCreate() = true
+
+        override fun call(method: String, arg: String?, extras: Bundle?): Bundle? {
+            started.countDown()
+            try {
+                release.await(2, TimeUnit.SECONDS)
+                return Bundle().apply {
+                    putBoolean(MiPushPreferences.KEY_ENABLED, false)
+                }
+            } finally {
+                finished.countDown()
+            }
+        }
+
+        override fun query(
+            uri: Uri,
+            projection: Array<out String>?,
+            selection: String?,
+            selectionArgs: Array<out String>?,
+            sortOrder: String?,
+        ): Cursor? = null
+
+        override fun getType(uri: Uri): String? = null
+
+        override fun insert(uri: Uri, values: ContentValues?): Uri? = null
+
+        override fun delete(uri: Uri, selection: String?, selectionArgs: Array<out String>?): Int = 0
+
+        override fun update(
+            uri: Uri,
+            values: ContentValues?,
+            selection: String?,
+            selectionArgs: Array<out String>?,
+        ): Int = 0
     }
 
     // Only the SDK's throwing constructors/extra storage are supplied here, not ART hooking behavior.

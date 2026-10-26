@@ -11,9 +11,11 @@ import org.json.JSONObject
 
 object HailData {
     const val URL_WHY_FREE_SOFTWARE = "https://www.gnu.org/philosophy/free-software-even-more-important.html"
-    const val URL_PROJECT_GITHUB = "https://github.com/codecodegogogo"
+    const val URL_PROJECT_GITHUB = "https://github.com/codecodegogogo/Freeze"
     const val URL_GITHUB = "https://github.com/aistra0528/Hail"
-    const val URL_RELEASES = "$URL_GITHUB/releases"
+    const val URL_RELEASES = "$URL_PROJECT_GITHUB/releases"
+    const val URL_LATEST_RELEASE_API =
+        "https://api.github.com/repos/codecodegogogo/Freeze/releases/latest"
     const val VERSION = "${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})"
     private const val KEY_ID = "id"
     const val KEY_TAG = "tag"

@@ -18,6 +18,12 @@
     <string name="label_default">Default</string>
     <string name="label_version">Version</string>
     <string name="label_time">Install time</string>
+    <string name="action_check_update">Check for updates</string>
+    <string name="msg_checking_update">Checking the latest release...</string>
+    <string name="msg_already_latest">You are already on the latest version.</string>
+    <string name="msg_update_available">New version available: %1$s</string>
+    <string name="msg_update_check_failed">Unable to check for updates.</string>
+    <string name="action_open_release">Open release page</string>
     <string name="action_telegram">Telegram Group</string>
     <string name="action_qq">QQ Group</string>
     <string name="action_github">GitHub</string>

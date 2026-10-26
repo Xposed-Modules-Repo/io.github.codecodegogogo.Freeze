@@ -13,7 +13,7 @@ class MiPushSettingsProvider : ContentProvider() {
     override fun call(method: String, arg: String?, extras: Bundle?): Bundle? {
         if (method != MiPushPreferences.METHOD_IS_ENABLED) return null
         val enabled = PreferenceManager.getDefaultSharedPreferences(requireNotNull(context))
-            .getBoolean(MiPushPreferences.KEY_ENABLED, true)
+            .getBoolean(MiPushPreferences.KEY_ENABLED, false)
         return Bundle().apply {
             putBoolean(MiPushPreferences.KEY_ENABLED, enabled)
         }

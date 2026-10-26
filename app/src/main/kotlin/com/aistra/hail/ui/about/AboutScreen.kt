@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
@@ -22,14 +23,18 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.aistra.hail.BuildConfig
 import com.aistra.hail.HailApp.Companion.app
 import com.aistra.hail.R
 import com.aistra.hail.app.HailData
+import com.aistra.hail.app.UpdateChecker
+import com.aistra.hail.app.UpdateRelease
 import com.aistra.hail.ui.common.AppIcon
 import com.aistra.hail.ui.common.HailGroup
 import com.aistra.hail.ui.common.HailScreenScaffold
@@ -37,6 +42,9 @@ import com.aistra.hail.ui.main.HailRoute
 import com.aistra.hail.utils.HPackages
 import com.aistra.hail.utils.HUI
 import java.text.SimpleDateFormat
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import top.yukonga.miuix.kmp.basic.BasicComponent
 import top.yukonga.miuix.kmp.basic.Button
 import top.yukonga.miuix.kmp.basic.Card
@@ -61,6 +69,9 @@ fun AboutScreen(
         }.getOrDefault("")
     }
     var showLicenses by remember { mutableStateOf(false) }
+    var checkingUpdate by remember { mutableStateOf(false) }
+    var updateRelease by remember { mutableStateOf<UpdateRelease?>(null) }
+    val scope = rememberCoroutineScope()
 
     HailScreenScaffold(
         title = stringResource(R.string.title_about),
@@ -160,6 +171,44 @@ fun AboutScreen(
                     onClick = { showLicenses = true },
                 )
             }
+
+            HailGroup {
+                BasicComponent(
+                    title = stringResource(R.string.action_check_update),
+                    summary = if (checkingUpdate) {
+                        stringResource(R.string.msg_checking_update)
+                    } else {
+                        HailData.VERSION
+                    },
+                    startAction = {
+                        Icon(
+                            Icons.Outlined.Update,
+                            contentDescription = null,
+                            modifier = Modifier.size(24.dp),
+                        )
+                    },
+                    onClick = {
+                        if (!checkingUpdate) {
+                            checkingUpdate = true
+                            scope.launch {
+                                val result = withContext(Dispatchers.IO) {
+                                    runCatching { UpdateChecker.fetchLatest() }
+                                }
+                                checkingUpdate = false
+                                result.onSuccess { release ->
+                                    if (UpdateChecker.isNewer(release.version, BuildConfig.VERSION_NAME)) {
+                                        updateRelease = release
+                                    } else {
+                                        HUI.showToast(R.string.msg_already_latest)
+                                    }
+                                }.onFailure {
+                                    HUI.showToast(R.string.msg_update_check_failed, true)
+                                }
+                            }
+                        }
+                    },
+                )
+            }
         }
     }
 
@@ -185,6 +234,37 @@ fun AboutScreen(
                 modifier = Modifier.fillMaxWidth(),
             ) {
                 Text(stringResource(android.R.string.ok))
+            }
+        }
+    }
+
+    updateRelease?.let { release ->
+        WindowDialog(
+            show = true,
+            title = stringResource(R.string.msg_update_available, release.version),
+            onDismissRequest = { updateRelease = null },
+        ) {
+            if (release.notes.isNotBlank()) {
+                SelectionContainer {
+                    Text(
+                        text = release.notes,
+                        modifier = Modifier
+                            .heightIn(max = 280.dp)
+                            .verticalScroll(rememberScrollState()),
+                        style = MiuixTheme.textStyles.footnote1,
+                        color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+                    )
+                }
+                Spacer(Modifier.height(12.dp))
+            }
+            Button(
+                onClick = {
+                    HUI.openLink(release.url)
+                    updateRelease = null
+                },
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Text(stringResource(R.string.action_open_release))
             }
         }
     }

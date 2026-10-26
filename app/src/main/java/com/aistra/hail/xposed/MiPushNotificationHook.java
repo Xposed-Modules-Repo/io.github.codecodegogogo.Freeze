@@ -59,10 +59,9 @@ public class MiPushNotificationHook implements IXposedHookLoadPackage {
 
     @Override
     public void handleLoadPackage(XC_LoadPackage.LoadPackageParam loadPackageParam) throws Throwable {
+        MiPushPreferences.setProcessName(loadPackageParam.packageName);
         MiPushPreferences.setClassLoader(loadPackageParam.classLoader);
-        if ("android".equals(loadPackageParam.packageName)) {
-            MiPushPreferences.setClientContext(getSystemContext(loadPackageParam.classLoader));
-        }
+        MiPushPreferences.setClientContext(getProcessContext(loadPackageParam.classLoader));
         hookMipushReceiverQuery(loadPackageParam);
 
         if ("android".equals(loadPackageParam.packageName)) {
@@ -895,6 +894,12 @@ public class MiPushNotificationHook implements IXposedHookLoadPackage {
         PackageManager packageManager = context.getPackageManager();
         int state = getApplicationEnabledSetting(packageManager, packageName, userId, classLoader);
         if (!isDisabledState(state)) {
+            return false;
+        }
+        if (isRecentNotificationLaunch(packageName, userId)) {
+            forgetRecentNotificationLaunch(packageName, userId);
+            log("skip re-enabling package frozen after notification launch: " + packageName
+                    + " userId=" + userId);
             return false;
         }
 
@@ -2132,6 +2137,18 @@ public class MiPushNotificationHook implements IXposedHookLoadPackage {
             log("get system context failed: " + e);
         }
         return systemContext;
+    }
+
+    private Context getProcessContext(ClassLoader classLoader) {
+        try {
+            Class<?> activityThreadClass = XposedHelpers.findClass("android.app.ActivityThread", classLoader);
+            Object application = XposedHelpers.callStaticMethod(activityThreadClass, "currentApplication");
+            if (application instanceof Context) {
+                return ((Context) application).getApplicationContext();
+            }
+        } catch (Throwable ignored) {
+        }
+        return getSystemContext(classLoader);
     }
 
     private Class<?> findClassSafely(String className, ClassLoader classLoader) {

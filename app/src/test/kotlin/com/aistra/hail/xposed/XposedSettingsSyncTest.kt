@@ -42,8 +42,6 @@ class XposedSettingsSyncTest {
         assertEquals(12345678901L, destination.getLong("timestamp", 0))
         assertEquals(setOf("work", "games"), destination.getStringSet("tags", null))
         assertEquals(before, original.readText())
-        XposedSettingsSync.start(destination.getBoolean("mipush_enhance", true))
-        assertFalse(pushPreferences().getBoolean("mipush_enhance", true))
     }
 
     @Test
@@ -63,14 +61,12 @@ class XposedSettingsSyncTest {
     }
 
     @Test
-    fun onlyThePushSwitchIsSharedAndItDefaultsToEnabled() {
+    fun updatingThePushSwitchDoesNotWriteASeparatePreferenceFile() {
         XposedSettingsSync.prepare(context)
         destination.edit().putString("working_mode", "su_disable").commit()
-        XposedSettingsSync.start(true)
-        assertEquals(mapOf("mipush_enhance" to true), pushPreferences().all)
         XposedSettingsSync.update(false)
-        assertEquals(mapOf("mipush_enhance" to false), pushPreferences().all)
         assertEquals("su_disable", destination.getString("working_mode", null))
+        assertTrue(pushPreferences().all.isEmpty())
     }
 
     @Test
@@ -78,11 +74,13 @@ class XposedSettingsSyncTest {
         XposedSettingsSync.prepare(context)
         XposedSettingsSync.update(false)
 
-        val intent = shadowOf(RuntimeEnvironment.getApplication())
+        val intents = shadowOf(RuntimeEnvironment.getApplication())
             .broadcastIntents
-            .lastOrNull { it.action == MiPushPreferences.ACTION_SETTINGS_CHANGED }
-        assertNotNull(intent)
-        assertFalse(intent!!.getBooleanExtra(MiPushPreferences.KEY_ENABLED, true))
+            .filter { it.action == MiPushPreferences.ACTION_SETTINGS_CHANGED }
+        assertEquals(setOf("android", "com.xiaomi.xmsf"), intents.map { it.`package` }.toSet())
+        intents.forEach {
+            assertFalse(it.getBooleanExtra(MiPushPreferences.KEY_ENABLED, true))
+        }
     }
 
     private fun pushPreferences() = context.getSharedPreferences("mipush", Context.MODE_PRIVATE)

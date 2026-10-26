@@ -64,6 +64,7 @@ Freeze 是基于 [Hail](https://github.com/aistra0528/Hail) 修改的 Android �
 - 冻结应用显示冰块角标，冰块大小随首页图标大小缩放。
 - 设置中的“外观和触感”包含主题、悬浮底栏、快捷按钮位置、图标大小、字体大小、无字模式和触感。
 - “触感”默认开启，点击主要图标会提供轻量震动反馈。
+- 关于页底部支持检查更新，读取 GitHub 最新 Release 并打开发布页。
 - 设置中的“自定义”包含模糊搜索和终端。
 
 首页图标支持每行 3–8 个，并会根据数量自动缩放；字体大小可在 11–16 之间调整。
@@ -109,14 +110,14 @@ Freeze 直接移植了 New MiPush Enhance 的 Java 接收与点击代码，使�
 - 将工作模式拆分为“权限”和“默认模式”。
 - 增加标签独立模式和日历伪装。
 - 应用选择页增加草稿选择、筛选排序、目标分组确认流程。
-- 使用新的白底黑色雪花图标、Freeze 品牌和 `2.2.1` 版本。
+- 使用新的白底黑色雪花图标、Freeze 品牌和 `2.3.0` 版本。
 - APK 文件名为 `Calendar-v版本号.apk`。
 
 已移除图标包、灰度图标、紧凑图标、合成自适应图标、T9 九键搜索、快捷方式设置、快捷设置磁贴、无图标应用启动器、自动操作功能、首页右上角批量菜单、关于页捐助入口，以及底部导航栏中的“应用”和“关于”按钮；关于页的群组、QQ 群、F-Droid 和翻译入口也不再提供。
 
 ## 项目与许可
 
-- 本分支仓库：[Freeze](https://github.com/codecodegogogo)
+- 本分支仓库：[Freeze](https://github.com/codecodegogogo/Freeze)
 - 原项目：[aistra0528/Hail](https://github.com/aistra0528/Hail)
 - 开源许可：[GNU General Public License v3.0](LICENSE)
 
