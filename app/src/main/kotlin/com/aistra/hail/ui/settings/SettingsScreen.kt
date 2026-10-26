@@ -1,7 +1,6 @@
 package com.aistra.hail.ui.settings
 
 import android.app.Activity
-import android.content.ComponentName
 import android.content.Intent
 import android.content.pm.PackageManager
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -60,6 +59,7 @@ import androidx.compose.ui.unit.dp
 import com.aistra.hail.HailApp.Companion.app
 import com.aistra.hail.R
 import com.aistra.hail.app.AppManager
+import com.aistra.hail.app.CalendarDisguise
 import com.aistra.hail.app.HailBackupManager
 import com.aistra.hail.app.HailData
 import com.aistra.hail.ui.common.HailGroup
@@ -122,23 +122,41 @@ fun SettingsScreen(
     val resources = LocalResources.current
     val scope = rememberCoroutineScope()
     val workingMode = rememberStringPreference(HailData.WORKING_MODE, HailData.MODE_DEFAULT)
-    val biometric = rememberBooleanPreference(HailData.BIOMETRIC_LOGIN, false)
-    val calendarDisguise = rememberBooleanPreference(HailData.CALENDAR_DISGUISE, true)
+    val biometric = rememberBooleanPreference(
+        HailData.BIOMETRIC_LOGIN,
+        HailData.DEFAULT_BIOMETRIC_LOGIN,
+    )
+    val calendarDisguise = rememberBooleanPreference(
+        HailData.CALENDAR_DISGUISE,
+        HailData.DEFAULT_CALENDAR_DISGUISE,
+    )
     val appTheme = rememberStringPreference(HailData.APP_THEME, HailData.FOLLOW_SYSTEM)
     val homeIconCount = rememberIntPreference(HailData.HOME_ICON_COUNT, 5)
     val homeFontSize = rememberFloatPreference(HailData.HOME_FONT_SIZE, 14f)
-    val textlessMode = rememberBooleanPreference(HailData.TEXTLESS_MODE, false)
-    val hapticFeedback = rememberBooleanPreference(HailData.HAPTIC_FEEDBACK, true)
+    val textlessMode = rememberBooleanPreference(
+        HailData.TEXTLESS_MODE,
+        HailData.DEFAULT_TEXTLESS_MODE,
+    )
+    val hapticFeedback = rememberBooleanPreference(
+        HailData.HAPTIC_FEEDBACK,
+        HailData.DEFAULT_HAPTIC_FEEDBACK,
+    )
     val floatingNavigationBar = rememberBooleanPreference(
         HailData.FLOATING_NAVIGATION_BAR,
-        false,
+        HailData.DEFAULT_FLOATING_NAVIGATION_BAR,
     )
     val actionButtonPosition = rememberStringPreference(
         HailData.ACTION_BUTTON_POSITION,
-        HailData.ACTION_BUTTON_BOTTOM_BAR,
+        HailData.DEFAULT_ACTION_BUTTON_POSITION,
     )
-    val fuzzySearch = rememberBooleanPreference(HailData.FUZZY_SEARCH, false)
-    val mipushEnhance = rememberBooleanPreference(HailData.MIPUSH_ENHANCE, true)
+    val fuzzySearch = rememberBooleanPreference(
+        HailData.FUZZY_SEARCH,
+        HailData.DEFAULT_FUZZY_SEARCH,
+    )
+    val mipushEnhance = rememberBooleanPreference(
+        HailData.MIPUSH_ENHANCE,
+        HailData.DEFAULT_MIPUSH_ENHANCE,
+    )
 
     var messageDialog by remember { mutableStateOf<MessageDialog?>(null) }
     var showTerminal by remember { mutableStateOf(false) }
@@ -479,7 +497,7 @@ fun SettingsScreen(
                         checked = calendarDisguise.first.value,
                         onCheckedChange = { enabled ->
                             calendarDisguise.second(enabled)
-                            setCalendarDisguiseEnabled(enabled)
+                            CalendarDisguise.apply(enabled)
                         },
                         title = stringResource(R.string.calendar_disguise),
                         startAction = { PreferenceIcon(Icons.Outlined.CalendarMonth) },
@@ -750,26 +768,4 @@ private fun String.workingActionTitleId(): Int = when (this) {
     HailData.HIDE -> R.string.working_action_hide
     HailData.SUSPEND -> R.string.working_action_suspend
     else -> R.string.working_action_unavailable
-}
-
-private fun setCalendarDisguiseEnabled(enabled: Boolean) {
-    val packageManager = app.packageManager
-    val calendarLauncher = ComponentName(
-        app,
-        "com.aistra.hail.ui.calendar.CalendarLauncher",
-    )
-    val hailLauncher = ComponentName(
-        app,
-        "com.aistra.hail.ui.main.HailLauncher",
-    )
-    packageManager.setComponentEnabledSetting(
-        if (enabled) calendarLauncher else hailLauncher,
-        PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
-        PackageManager.DONT_KILL_APP,
-    )
-    packageManager.setComponentEnabledSetting(
-        if (enabled) hailLauncher else calendarLauncher,
-        PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
-        PackageManager.DONT_KILL_APP,
-    )
 }

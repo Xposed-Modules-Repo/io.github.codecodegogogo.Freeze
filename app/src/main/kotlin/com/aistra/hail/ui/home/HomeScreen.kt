@@ -150,11 +150,11 @@ fun HomeScreen(
     val scope = rememberCoroutineScope()
     val actionButtonInBottomBar = rememberStringPreference(
         HailData.ACTION_BUTTON_POSITION,
-        HailData.ACTION_BUTTON_BOTTOM_BAR,
+        HailData.DEFAULT_ACTION_BUTTON_POSITION,
     ).first.value == HailData.ACTION_BUTTON_BOTTOM_BAR
     val floatingNavigationBar = rememberBooleanPreference(
         HailData.FLOATING_NAVIGATION_BAR,
-        false,
+        HailData.DEFAULT_FLOATING_NAVIGATION_BAR,
     ).first.value
     val actionButtonInNormalBar = actionButtonInBottomBar && !floatingNavigationBar
     var query by rememberSaveable { mutableStateOf("") }

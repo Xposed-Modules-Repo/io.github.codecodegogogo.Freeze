@@ -1,7 +1,5 @@
 package com.aistra.hail.app
 
-import android.content.ComponentName
-import android.content.pm.PackageManager
 import androidx.core.content.edit
 import androidx.preference.PreferenceManager
 import com.aistra.hail.HailApp.Companion.app
@@ -140,7 +138,7 @@ object HailBackupManager {
 
         app.setAppTheme(HailData.appTheme)
         XposedSettingsSync.update(HailData.mipushEnhance)
-        applyCalendarLauncher(HailData.calendarDisguise)
+        CalendarDisguise.apply(HailData.calendarDisguise)
     }
 
     private fun parse(json: String): JSONObject {
@@ -178,25 +176,4 @@ object HailBackupManager {
         else -> null
     }
 
-    private fun applyCalendarLauncher(enabled: Boolean) {
-        val packageManager = app.packageManager
-        val calendarLauncher = ComponentName(
-            app,
-            "com.aistra.hail.ui.calendar.CalendarLauncher",
-        )
-        val hailLauncher = ComponentName(
-            app,
-            "com.aistra.hail.ui.main.HailLauncher",
-        )
-        packageManager.setComponentEnabledSetting(
-            if (enabled) calendarLauncher else hailLauncher,
-            PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
-            PackageManager.DONT_KILL_APP,
-        )
-        packageManager.setComponentEnabledSetting(
-            if (enabled) hailLauncher else calendarLauncher,
-            PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
-            PackageManager.DONT_KILL_APP,
-        )
-    }
 }

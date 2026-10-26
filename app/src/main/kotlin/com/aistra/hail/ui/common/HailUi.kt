@@ -286,11 +286,11 @@ fun HailScreenScaffold(
         val hapticBackClick = if (onBack != null) rememberHapticClick(onBack) else null
         val floatingNavigationBar = rememberBooleanPreference(
             HailData.FLOATING_NAVIGATION_BAR,
-            false,
+            HailData.DEFAULT_FLOATING_NAVIGATION_BAR,
         ).first.value
         val actionButtonInBottomBar = rememberStringPreference(
             HailData.ACTION_BUTTON_POSITION,
-            HailData.ACTION_BUTTON_BOTTOM_BAR,
+            HailData.DEFAULT_ACTION_BUTTON_POSITION,
         ).first.value == HailData.ACTION_BUTTON_BOTTOM_BAR
         val unavailableQuickAction: (@Composable () -> Unit)? =
             if (showUnavailableQuickAction && actionButtonInBottomBar && !showRail) {

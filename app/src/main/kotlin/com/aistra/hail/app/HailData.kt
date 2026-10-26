@@ -81,6 +81,14 @@ object HailData {
     const val FUZZY_SEARCH = "fuzzy_search"
     const val MIPUSH_ENHANCE = "mipush_enhance"
     const val KEY_APP_OPERATIONS = "app_operations"
+    const val DEFAULT_BIOMETRIC_LOGIN = false
+    const val DEFAULT_CALENDAR_DISGUISE = false
+    const val DEFAULT_TEXTLESS_MODE = false
+    const val DEFAULT_HAPTIC_FEEDBACK = true
+    const val DEFAULT_FLOATING_NAVIGATION_BAR = false
+    const val DEFAULT_ACTION_BUTTON_POSITION = ACTION_BUTTON_BOTTOM_RIGHT
+    const val DEFAULT_FUZZY_SEARCH = false
+    const val DEFAULT_MIPUSH_ENHANCE = false
 
     private val sp = PreferenceManager.getDefaultSharedPreferences(app)
     val sortBy get() = sp.getString(SORT_BY, SORT_NAME)
@@ -89,17 +97,23 @@ object HailData {
     val filterFrozenApps get() = sp.getBoolean(FILTER_FROZEN_APPS, true)
     val filterUnfrozenApps get() = sp.getBoolean(FILTER_UNFROZEN_APPS, true)
     val workingMode get() = sp.getString(WORKING_MODE, MODE_DEFAULT)!!
-    val biometricLogin get() = sp.getBoolean(BIOMETRIC_LOGIN, false)
-    val calendarDisguise get() = sp.getBoolean(CALENDAR_DISGUISE, true)
+    val biometricLogin get() = sp.getBoolean(BIOMETRIC_LOGIN, DEFAULT_BIOMETRIC_LOGIN)
+    val calendarDisguise get() = sp.getBoolean(CALENDAR_DISGUISE, DEFAULT_CALENDAR_DISGUISE)
     val appTheme get() = sp.getString(APP_THEME, FOLLOW_SYSTEM)!!
     val homeFontSize get() = sp.getFloat(HOME_FONT_SIZE, 14f)
-    val textlessMode get() = sp.getBoolean(TEXTLESS_MODE, false)
-    val hapticFeedback get() = sp.getBoolean(HAPTIC_FEEDBACK, true)
-    val floatingNavigationBar get() = sp.getBoolean(FLOATING_NAVIGATION_BAR, false)
-    val actionButtonPosition get() = sp.getString(ACTION_BUTTON_POSITION, ACTION_BUTTON_BOTTOM_BAR)!!
+    val textlessMode get() = sp.getBoolean(TEXTLESS_MODE, DEFAULT_TEXTLESS_MODE)
+    val hapticFeedback get() = sp.getBoolean(HAPTIC_FEEDBACK, DEFAULT_HAPTIC_FEEDBACK)
+    val floatingNavigationBar get() = sp.getBoolean(
+        FLOATING_NAVIGATION_BAR,
+        DEFAULT_FLOATING_NAVIGATION_BAR,
+    )
+    val actionButtonPosition get() = sp.getString(
+        ACTION_BUTTON_POSITION,
+        DEFAULT_ACTION_BUTTON_POSITION,
+    )!!
     val homeIconCount get() = sp.getInt(HOME_ICON_COUNT, 5).coerceIn(3, 8)
-    val fuzzySearch get() = sp.getBoolean(FUZZY_SEARCH, false)
-    val mipushEnhance get() = sp.getBoolean(MIPUSH_ENHANCE, true)
+    val fuzzySearch get() = sp.getBoolean(FUZZY_SEARCH, DEFAULT_FUZZY_SEARCH)
+    val mipushEnhance get() = sp.getBoolean(MIPUSH_ENHANCE, DEFAULT_MIPUSH_ENHANCE)
     fun workingPermission(mode: String): String =
         WORKING_PERMISSION_VALUES.drop(1).firstOrNull { mode.startsWith(it) } ?: MODE_DEFAULT
 
