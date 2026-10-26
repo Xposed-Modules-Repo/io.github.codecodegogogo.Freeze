@@ -35,6 +35,7 @@
     <string name="action_restore_current">Restore visible</string>
     <string name="action_open_operation_menu">Open operation menu</string>
     <string name="action_close_operation_menu">Close operation menu</string>
+    <string name="action_operation">Operate</string>
     <string name="action_next">Next</string>
     <string name="action_done">Done</string>
     <string name="action_confirm_add">Confirm</string>
@@ -83,7 +84,7 @@
     <string name="msg_uninstall">Do you want to uninstall this app?</string>
     <string name="working_mode">Working mode</string>
     <string name="working_permission">Permission</string>
-    <string name="restore_apps_before_switching_mode">Before switching permission or mode, restore all app operations first.</string>
+    <string name="restore_apps_before_switching_mode">Restore all Home operations first.</string>
     <string name="working_permission_shizuku">Shizuku</string>
     <string name="working_permission_root">Root</string>
     <string name="working_permission_dhizuku">Dhizuku</string>
@@ -113,7 +114,7 @@
     <string name="title_remove_owner">Remove Device Owner</string>
     <string name="msg_remove_owner">If Hail is removed as the device owner, there may be difficulties reorganizing Apps after Hail removal.
 \nFrozen apps will remain frozen after removal, please make sure you have unfrozen the important apps.</string>
-    <string name="tap_to_select">Tap to multiselect</string>
+    <string name="tap_to_select">Multiselect</string>
     <string name="filter_by">Filter</string>
     <string name="filter_user_apps">User</string>
     <string name="filter_system_apps">System</string>
@@ -129,6 +130,7 @@
     <string name="shizuku_missing">Shizuku missing :(</string>
     <string name="operation_failed">Operation failed: %s</string>
     <string name="msg_selected">Selected: %s</string>
+    <string name="msg_operation_in_progress">Processing...</string>
     <string name="msg_exported">Exported: %s</string>
     <string name="msg_imported">Imported: %s</string>
     <string name="msg_text_copied">Copied: %s</string>
@@ -197,6 +199,7 @@
     <string name="tag">Tag</string>
     <string name="tag_working_action">Tag mode</string>
     <string name="tag_working_action_default">Follow default mode</string>
+    <string name="tag_name_exists">This tag name already exists. Choose another name.</string>
     <string name="freeze_system_app">Freezing or uninstalling system applications may cause the device to bootloop. Make sure you know what you are doing and backup your data in advance or use recovery that supports file management.</string>
     <string name="action_continue">Continue</string>
     <string name="nine_key">T9 Search</string>

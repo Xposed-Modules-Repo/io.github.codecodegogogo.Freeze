@@ -4,7 +4,6 @@ package com.aistra.hail.ui.home
 
 import android.content.pm.ApplicationInfo
 import android.provider.Settings
-import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
@@ -23,7 +22,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -33,9 +31,17 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.Label
+import androidx.compose.material.icons.automirrored.outlined.Launch
+import androidx.compose.material.icons.outlined.AcUnit
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Close
+import androidx.compose.material.icons.outlined.DeleteOutline
+import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.outlined.LockOpen
 import androidx.compose.material.icons.outlined.MoreVert
+import androidx.compose.material.icons.outlined.PushPin
+import androidx.compose.material.icons.outlined.RemoveCircleOutline
 import androidx.compose.material.icons.outlined.SelectAll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -55,7 +61,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.boundsInWindow
@@ -64,7 +69,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
@@ -79,6 +83,10 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupPositionProvider
 import androidx.compose.ui.window.PopupProperties
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import com.aistra.hail.HailApp.Companion.app
 import com.aistra.hail.R
 import com.aistra.hail.app.AppInfo
@@ -86,9 +94,12 @@ import com.aistra.hail.app.AppManager
 import com.aistra.hail.app.HailData
 import com.aistra.hail.ui.common.AppIcon
 import com.aistra.hail.ui.common.EmptyState
-import com.aistra.hail.ui.common.HailGroup
+import com.aistra.hail.ui.common.HailAction
+import com.aistra.hail.ui.common.HailActionGrid
 import com.aistra.hail.ui.common.HailQuickActionButton
 import com.aistra.hail.ui.common.HailScreenScaffold
+import com.aistra.hail.ui.common.HailSelectablePill
+import com.aistra.hail.ui.common.rememberBooleanPreference
 import com.aistra.hail.ui.common.rememberHapticClick
 import com.aistra.hail.ui.common.rememberStringPreference
 import com.aistra.hail.ui.main.HailRoute
@@ -98,8 +109,6 @@ import com.aistra.hail.utils.HPackages
 import com.aistra.hail.utils.HShizuku
 import com.aistra.hail.utils.HUI
 import com.aistra.hail.utils.PinyinSearch
-import com.aistra.hail.work.HWork
-import org.json.JSONArray
 import java.text.Collator
 import top.yukonga.miuix.kmp.basic.BasicComponent
 import top.yukonga.miuix.kmp.basic.Button
@@ -111,8 +120,6 @@ import top.yukonga.miuix.kmp.basic.SearchBar
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.basic.TextButton
 import top.yukonga.miuix.kmp.basic.TextField
-import top.yukonga.miuix.kmp.preference.OverlayDropdownPreference
-import top.yukonga.miuix.kmp.preference.SwitchPreference
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 import top.yukonga.miuix.kmp.window.WindowBottomSheet
 import top.yukonga.miuix.kmp.window.WindowDialog
@@ -145,6 +152,11 @@ fun HomeScreen(
         HailData.ACTION_BUTTON_POSITION,
         HailData.ACTION_BUTTON_BOTTOM_BAR,
     ).first.value == HailData.ACTION_BUTTON_BOTTOM_BAR
+    val floatingNavigationBar = rememberBooleanPreference(
+        HailData.FLOATING_NAVIGATION_BAR,
+        false,
+    ).first.value
+    val actionButtonInNormalBar = actionButtonInBottomBar && !floatingNavigationBar
     var query by rememberSaveable { mutableStateOf("") }
     var selectedTagIndex by rememberSaveable { mutableIntStateOf(0) }
     var multiselect by remember { mutableStateOf(false) }
@@ -153,15 +165,21 @@ fun HomeScreen(
     var tagVersion by remember { mutableIntStateOf(0) }
     var actionApp by remember { mutableStateOf<AppInfo?>(null) }
     var selectionSheet by remember { mutableStateOf(false) }
+    var tagEditorVisible by remember { mutableStateOf(false) }
+    var tagEditorTagId by remember { mutableStateOf<Int?>(null) }
     var tagEditorTargets by remember { mutableStateOf<List<AppInfo>?>(null) }
     var tagEditorNew by remember { mutableStateOf(false) }
     var tagEditorName by remember { mutableStateOf(TextFieldValue()) }
     var tagEditorAction by remember { mutableIntStateOf(0) }
     var tagEditorSelections by remember { mutableStateOf<Set<Int>>(emptySet()) }
-    var deferredApp by remember { mutableStateOf<AppInfo?>(null) }
+    var tagEditorError by remember { mutableStateOf<String?>(null) }
     var message by remember { mutableStateOf<HomeMessage?>(null) }
     var actionMenuBounds by remember { mutableStateOf<Rect?>(null) }
+    var allAppsOperationInProgress by remember { mutableStateOf(false) }
     val selected = remember { mutableStateListOf<AppInfo>() }
+    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
+        dataVersion++
+    }
     val popupGap = with(LocalDensity.current) { 8.dp.roundToPx() }
     val popupPositionProvider = remember(actionMenuBounds, popupGap) {
         object : PopupPositionProvider {
@@ -193,29 +211,30 @@ fun HomeScreen(
         val collator = Collator.getInstance()
         HailData.checkedList.map { info ->
             val applicationInfo = info.applicationInfo
+            val uninstalled = HPackages.isAppUninstalled(info.packageName)
             HomeAppEntry(
                 info = info,
-                label = applicationInfo?.loadLabel(packageManager)?.toString()
+                label = applicationInfo
+                    ?.takeUnless { uninstalled }
+                    ?.loadLabel(packageManager)
+                    ?.toString()
                     ?: info.packageName,
-                uninstalled = applicationInfo == null ||
-                    applicationInfo.flags and ApplicationInfo.FLAG_INSTALLED == 0,
+                uninstalled = uninstalled,
             )
         }.sortedWith { first, second ->
-            when {
-                first.uninstalled != second.uninstalled ->
-                    if (first.uninstalled) 1 else -1
-
-                first.info.pinned != second.info.pinned ->
-                    if (first.info.pinned) -1 else 1
-
-                else -> collator.compare(first.label, second.label)
-            }
+            compareHomeAppOrder(
+                HomeAppOrderKey(first.uninstalled, first.info.pinned, first.label),
+                HomeAppOrderKey(second.uninstalled, second.info.pinned, second.label),
+                collator::compare,
+            )
         }
     }
     val appLabels = remember(homeApps) {
         homeApps.associate { it.info.packageName to it.label }
     }
-    val appsByTag = remember(homeApps, tags) {
+    // AppInfo.equals only compares package names, so tagIdList mutations can leave
+    // homeApps/tags equal by value. Include the explicit data versions in the key.
+    val appsByTag = remember(homeApps, tags, dataVersion, tagVersion) {
         tags.associate { (_, tagId) ->
             tagId to homeApps.filter { tagId in it.info.tagIdList }.map { it.info }
         }
@@ -255,7 +274,7 @@ fun HomeScreen(
             if (info in selected) selected.remove(info) else selected.add(info)
             return
         }
-        if (info.applicationInfo == null) {
+        if (HPackages.isAppUninstalled(info.packageName)) {
             message = HomeMessage(
                 message = resources.getString(R.string.app_not_installed),
             )
@@ -274,33 +293,36 @@ fun HomeScreen(
         } ?: HUI.showToast(R.string.activity_not_found)
     }
 
-    fun executeListFrozen(
-        frozen: Boolean,
-        list: List<AppInfo>,
-        workingMode: String,
-    ): String? {
+    fun canOperateList(workingMode: String): Boolean {
         if (workingMode == HailData.MODE_DEFAULT) {
             message = HomeMessage(message = resources.getString(R.string.msg_guide))
-            return null
+            return false
         }
         if (workingMode == HailData.MODE_SHIZUKU_HIDE) {
             runCatching { HShizuku.isRoot }.onSuccess {
                 if (!it) {
                     message = HomeMessage(message = resources.getString(R.string.shizuku_hide_adb))
-                    return null
+                    return false
                 }
             }
         }
+        return true
+    }
+
+    suspend fun executeListFrozen(
+        frozen: Boolean,
+        list: List<AppInfo>,
+        workingMode: String,
+    ): String? = withContext(Dispatchers.IO) {
         val filtered = list.filter {
-            AppManager.isAppFrozen(it.packageName, workingMode) != frozen
+            AppManager.isAppFrozen(it.packageName, workingMode) != frozen ||
+                (!frozen && HailData.hasAppOperation(it.packageName, workingMode))
         }
-        return AppManager.setListFrozen(
+        AppManager.setListFrozen(
             frozen,
             workingMode,
             *filtered.toTypedArray(),
-        ).also {
-            if (it == null) HUI.showToast(R.string.permission_denied)
-        }
+        )
     }
 
     fun setListFrozen(
@@ -308,93 +330,149 @@ fun HomeScreen(
         list: List<AppInfo>,
         workingMode: String = currentTagWorkingMode,
         update: Boolean = true,
+        onComplete: ((Boolean) -> Unit)? = null,
     ) {
-        val result = executeListFrozen(frozen, list, workingMode) ?: return
-        if (update) refresh()
-        HUI.showToast(workingMode.operationMessageId(frozen), result)
+        if (!canOperateList(workingMode)) {
+            onComplete?.invoke(false)
+            return
+        }
+        val snapshot = list.toList()
+        scope.launch {
+            val result = runCatching {
+                executeListFrozen(frozen, snapshot, workingMode)
+            }.getOrNull()
+            if (result == null) {
+                HUI.showToast(R.string.permission_denied)
+                onComplete?.invoke(false)
+                return@launch
+            }
+            if (update) refresh()
+            HUI.showToast(workingMode.operationMessageId(frozen), result)
+            onComplete?.invoke(true)
+        }
     }
 
     fun setAllAppsFrozen(frozen: Boolean) {
-        val messages = HailData.checkedList.groupBy(HailData::appWorkingModeTag)
-            .mapNotNull { (tagMode, apps) ->
-                val (tagId, workingMode) = tagMode
-                executeListFrozen(frozen, apps, workingMode)?.let {
-                    val groupName = tagId?.let { id ->
-                        tags.firstOrNull { it.second == id }?.first?.let(::tagDisplayName)
-                    } ?: resources.getString(R.string.default_working_mode)
-                    resources.getString(
-                        R.string.msg_tag_operation,
-                        groupName,
-                        resources.getString(workingMode.operationStatusId(frozen)),
-                    )
+        if (allAppsOperationInProgress) return
+        val groups = HailData.checkedList.groupBy(HailData::appWorkingModeTag).map { (tagMode, apps) ->
+            val (tagId, workingMode) = tagMode
+            val groupName = tagId?.let { id ->
+                tags.firstOrNull { it.second == id }?.first?.let(::tagDisplayName)
+            } ?: resources.getString(R.string.default_working_mode)
+            Triple(workingMode, groupName, apps.toList())
+        }
+        if (groups.isEmpty()) return
+        allAppsOperationInProgress = true
+        HUI.showToast(R.string.msg_operation_in_progress)
+        scope.launch {
+            var guide = false
+            var shizukuHideNeedsRoot = false
+            var denied = false
+            val messages = withContext(Dispatchers.IO) {
+                groups.mapNotNull { (workingMode, groupName, apps) ->
+                    when {
+                        workingMode == HailData.MODE_DEFAULT -> {
+                            guide = true
+                            null
+                        }
+
+                        workingMode == HailData.MODE_SHIZUKU_HIDE &&
+                            runCatching { !HShizuku.isRoot }.getOrDefault(true) -> {
+                            shizukuHideNeedsRoot = true
+                            null
+                        }
+
+                        else -> runCatching {
+                            val filtered = apps.filter {
+                                AppManager.isAppFrozen(it.packageName, workingMode) != frozen ||
+                                    (!frozen &&
+                                        HailData.hasAppOperation(it.packageName, workingMode))
+                            }
+                            if (filtered.isEmpty()) return@runCatching null
+                            val result = AppManager.setListFrozen(
+                                frozen,
+                                workingMode,
+                                *filtered.toTypedArray(),
+                            )
+                            if (result == null) {
+                                denied = true
+                                null
+                            } else {
+                                resources.getString(
+                                    R.string.msg_tag_operation,
+                                    groupName,
+                                    resources.getString(
+                                        workingMode.operationStatusId(frozen),
+                                    ),
+                                )
+                            }
+                        }.getOrElse {
+                            denied = true
+                            null
+                        }
+                    }
                 }
             }
-        refresh()
-        if (messages.isNotEmpty()) {
-            HUI.showToast(messages.joinToString("\n"), messages.size > 1)
-        }
-    }
-
-    fun exportToClipboard(list: List<AppInfo>) {
-        if (list.isEmpty()) return
-        HUI.copyText(
-            if (list.size > 1) {
-                JSONArray().apply { list.forEach { put(it.packageName) } }.toString()
-            } else {
-                list.first().packageName
-            },
-        )
-        HUI.showToast(
-            R.string.msg_exported,
-            if (list.size > 1) list.size.toString() else list.first().name,
-        )
-    }
-
-    fun importFromClipboard() = runCatching {
-        val text = HUI.pasteText() ?: error("No clipboard text")
-        val json = if ('[' in text) {
-            JSONArray(text.substring(text.indexOf('[')..text.indexOf(']', text.indexOf('['))))
-        } else {
-            JSONArray().put(text)
-        }
-        var imported = 0
-        for (index in 0 until json.length()) {
-            val packageName = json.getString(index)
-            if (HPackages.getApplicationInfoOrNull(packageName) != null &&
-                !HailData.isChecked(packageName)
-            ) {
-                HailData.addCheckedApp(packageName, currentTag?.second ?: 0, false)
-                imported++
+            withContext(Dispatchers.Main) {
+                allAppsOperationInProgress = false
+                refresh()
+                when {
+                    guide -> message = HomeMessage(
+                        message = resources.getString(R.string.msg_guide),
+                    )
+                    shizukuHideNeedsRoot -> message = HomeMessage(
+                        message = resources.getString(R.string.shizuku_hide_adb),
+                    )
+                    denied -> HUI.showToast(R.string.permission_denied)
+                }
+                if (messages.isNotEmpty()) {
+                    HUI.showToast(messages.joinToString("\n"), messages.size > 1)
+                }
             }
         }
-        if (imported > 0) {
-            HailData.saveApps()
-            refresh()
+    }
+
+    fun closeTagEditor() {
+        tagEditorVisible = false
+        tagEditorTagId = null
+        tagEditorTargets = null
+        tagEditorNew = false
+        tagEditorError = null
+    }
+
+    fun openTagEditor(
+        targets: List<AppInfo>?,
+        isNew: Boolean = false,
+        tagIndex: Int = safeTagIndex,
+    ) {
+        val editorTag = if (!isNew && targets == null) {
+            HailData.tags.getOrNull(tagIndex)
+        } else {
+            null
         }
-        HUI.showToast(resources.getString(R.string.msg_imported, imported.toString()))
+        tagEditorVisible = true
+        tagEditorTagId = editorTag?.second
+        tagEditorTargets = targets
+        tagEditorNew = isNew
+        tagEditorName = TextFieldValue(
+            if (!isNew && targets == null && query.isBlank()) editorTag?.first.orEmpty() else "",
+        )
+        tagEditorSelections = targets?.flatMap { it.tagIdList }?.toSet().orEmpty()
+        tagEditorError = null
+        val permission = HailData.workingPermission(HailData.workingMode)
+        val actions = listOf<String?>(null) + HailData.supportedWorkingActions(permission)
+        val currentAction = if (!isNew && targets == null) {
+            editorTag?.second?.let(HailData::tagWorkingAction)
+        } else {
+            null
+        }
+        tagEditorAction = actions.indexOf(currentAction).coerceAtLeast(0)
     }
 
     fun deselect() {
         selected.clear()
         multiselect = false
         dataVersion++
-    }
-
-    fun openTagEditor(targets: List<AppInfo>?, isNew: Boolean = false) {
-        tagEditorTargets = targets
-        tagEditorNew = isNew
-        tagEditorName = TextFieldValue(
-            if (!isNew && targets == null && query.isBlank()) currentTag?.first.orEmpty() else "",
-        )
-        tagEditorSelections = targets?.flatMap { it.tagIdList }?.toSet().orEmpty()
-        val permission = HailData.workingPermission(HailData.workingMode)
-        val actions = listOf<String?>(null) + HailData.supportedWorkingActions(permission)
-        val currentAction = if (!isNew && targets == null) {
-            currentTag?.second?.let(HailData::tagWorkingAction)
-        } else {
-            null
-        }
-        tagEditorAction = actions.indexOf(currentAction).coerceAtLeast(0)
     }
 
     val actionButton: @Composable (Boolean) -> Unit = { inBottomBar ->
@@ -412,7 +490,11 @@ fun HomeScreen(
                 )
                 .onGloballyPositioned { actionMenuBounds = it.boundsInWindow() },
             showBackground = !inBottomBar,
-            size = if (inBottomBar) 52.dp else 60.dp,
+            size = when {
+                actionButtonInNormalBar -> 36.dp
+                inBottomBar -> 52.dp
+                else -> 60.dp
+            },
             iconSize = if (inBottomBar) 24.dp else 28.dp,
             backgroundColor = if (inBottomBar) {
                 MiuixTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.92f)
@@ -513,14 +595,17 @@ fun HomeScreen(
                     contentPadding = PaddingValues(horizontal = 16.dp),
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    itemsIndexed(tags, key = { _, tag -> tag.second }) { index, tag ->
+                    itemsIndexed(
+                        tags,
+                        key = { tagIndex, tag -> "$tagIndex:${tag.second}:${tag.first}" },
+                    ) { index, tag ->
                         TagButton(
                             text = tag.first,
                             selected = index == safeTagIndex,
                             onClick = { selectedTagIndex = index },
                             onLongClick = {
                                 selectedTagIndex = index
-                                openTagEditor(null)
+                                openTagEditor(null, tagIndex = index)
                             },
                         )
                     }
@@ -612,6 +697,20 @@ fun HomeScreen(
                 }
             }
         }
+        if (allAppsOperationInProgress) {
+            Card(
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .padding(top = innerPadding.calculateTopPadding() + 12.dp),
+                insideMargin = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+            ) {
+                Text(
+                    text = stringResource(R.string.msg_operation_in_progress),
+                    color = MiuixTheme.colorScheme.onSurface,
+                    style = MiuixTheme.textStyles.body2,
+                )
+            }
+        }
     }
     }
 
@@ -662,90 +761,85 @@ fun HomeScreen(
     }
 
     actionApp?.let { info ->
+        val installed = !HPackages.isAppUninstalled(info.packageName)
         val frozen = AppManager.isAppFrozen(info.packageName, currentTagWorkingMode)
         WindowBottomSheet(
             show = true,
             title = info.name.toString(),
             onDismissRequest = { actionApp = null },
         ) {
-            HailGroup {
-                if (info.applicationInfo != null) {
-                    BasicComponent(
-                        title = stringResource(R.string.action_launch),
-                        onClick = {
+            val actions = buildList {
+                if (installed) {
+                    add(
+                        HailAction(
+                            title = stringResource(R.string.action_launch),
+                            icon = Icons.AutoMirrored.Outlined.Launch,
+                        ) {
                             actionApp = null
                             launchApp(info)
                         },
                     )
-                    BasicComponent(
-                        title = stringResource(
-                            if (frozen) R.string.action_unfreeze else R.string.action_freeze,
-                        ),
-                        onClick = {
+                    add(
+                        HailAction(
+                            title = stringResource(
+                                if (frozen) R.string.action_unfreeze else R.string.action_freeze,
+                            ),
+                            icon = if (frozen) Icons.Outlined.LockOpen else Icons.Outlined.AcUnit,
+                        ) {
                             actionApp = null
                             setListFrozen(!frozen, listOf(info), currentTagWorkingMode)
                         },
                     )
-                    BasicComponent(
-                        title = stringResource(R.string.action_deferred_task),
-                        onClick = {
+                }
+                if (frozen) {
+                    add(
+                        HailAction(
+                            title = stringResource(R.string.action_unfreeze_remove_home),
+                            icon = Icons.Outlined.RemoveCircleOutline,
+                        ) {
                             actionApp = null
-                            deferredApp = info
+                            setListFrozen(
+                                false,
+                                listOf(info),
+                                currentTagWorkingMode,
+                                update = false,
+                            ) { restored ->
+                                if (restored) {
+                                    removeFromHome(info)
+                                } else {
+                                    refresh()
+                                }
+                            }
                         },
                     )
-                    if (frozen) {
-                        BasicComponent(
-                            title = stringResource(R.string.action_unfreeze_remove_home),
-                            onClick = {
-                                actionApp = null
-                                setListFrozen(
-                                    false,
-                                    listOf(info),
-                                    currentTagWorkingMode,
-                                    update = false,
-                                )
-                                if (!AppManager.isAppFrozen(
-                                        info.packageName,
-                                        currentTagWorkingMode,
-                                    )
-                                ) {
-                                    removeFromHome(info)
-                                }
-                            },
-                        )
-                    }
                 }
-                BasicComponent(
-                    title = stringResource(if (info.pinned) R.string.action_unpin else R.string.action_pin),
-                    onClick = {
+                add(
+                    HailAction(
+                        title = stringResource(
+                            if (info.pinned) R.string.action_unpin else R.string.action_pin,
+                        ),
+                        icon = Icons.Outlined.PushPin,
+                    ) {
                         info.pinned = !info.pinned
                         HailData.saveApps()
                         actionApp = null
                         refresh()
                     },
                 )
-                BasicComponent(
-                    title = stringResource(
-                        if (info.whitelisted) R.string.action_remove_whitelist else R.string.action_whitelist,
-                    ),
-                    onClick = {
-                        info.whitelisted = !info.whitelisted
-                        HailData.saveApps()
-                        actionApp = null
-                        refresh()
-                    },
-                )
-                BasicComponent(
-                    title = stringResource(R.string.action_tag_set),
-                    onClick = {
+                add(
+                    HailAction(
+                        title = stringResource(R.string.action_tag_set),
+                        icon = Icons.AutoMirrored.Outlined.Label,
+                    ) {
                         actionApp = null
                         openTagEditor(listOf(info))
                     },
                 )
-                BasicComponent(
-                    title = stringResource(R.string.tap_to_select),
-                    startAction = { MenuIcon(Icons.Outlined.SelectAll) },
-                    onClick = {
+                add(
+                    HailAction(
+                        title = stringResource(R.string.tap_to_select),
+                        icon = Icons.Outlined.SelectAll,
+                    ) {
                         actionApp = null
                         selected.clear()
                         selected.add(info)
@@ -753,16 +847,11 @@ fun HomeScreen(
                         dataVersion++
                     },
                 )
-                BasicComponent(
-                    title = stringResource(R.string.action_export_clipboard),
-                    onClick = {
-                        actionApp = null
-                        exportToClipboard(listOf(info))
-                    },
-                )
-                BasicComponent(
-                    title = stringResource(R.string.action_details),
-                    onClick = {
+                add(
+                    HailAction(
+                        title = stringResource(R.string.action_details),
+                        icon = Icons.Outlined.Info,
+                    ) {
                         actionApp = null
                         HUI.startActivity(
                             Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
@@ -770,61 +859,24 @@ fun HomeScreen(
                         )
                     },
                 )
-                BasicComponent(
-                    title = stringResource(R.string.action_remove_home),
-                    titleColor = top.yukonga.miuix.kmp.basic.BasicComponentDefaults.titleColor(
-                        color = MiuixTheme.colorScheme.error,
-                    ),
-                    onClick = {
+                add(
+                    HailAction(
+                        title = stringResource(R.string.action_remove_home),
+                        icon = Icons.Outlined.DeleteOutline,
+                        destructive = true,
+                    ) {
                         actionApp = null
                         removeFromHome(info)
                     },
                 )
             }
-        }
-    }
-
-    deferredApp?.let { info ->
-        val values = resources.getIntArray(R.array.deferred_task_values)
-        WindowBottomSheet(
-            show = true,
-            title = stringResource(R.string.action_deferred_task),
-            onDismissRequest = { deferredApp = null },
-        ) {
-            HailGroup {
-                values.forEach { value ->
-                    BasicComponent(
-                        title = resources.getQuantityString(
-                            R.plurals.deferred_task_entry,
-                            value,
-                            value,
-                        ),
-                        onClick = {
-                            deferredApp = null
-                            val frozen = AppManager.isAppFrozen(
-                                info.packageName,
-                                currentTagWorkingMode,
-                            )
-                            HWork.setDeferredFrozen(
-                                info.packageName,
-                                !frozen,
-                                value.toLong(),
-                                currentTagWorkingMode,
-                            )
-                            HUI.showToast(
-                                resources.getQuantityString(
-                                    R.plurals.msg_deferred_task,
-                                    value,
-                                    value,
-                                    resources.getString(
-                                        if (frozen) R.string.action_unfreeze else R.string.action_freeze,
-                                    ),
-                                    info.name,
-                                ),
-                            )
-                        },
-                    )
-                }
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 12.dp),
+            ) {
+                HailActionGrid(actions)
+                Spacer(Modifier.height(12.dp))
             }
         }
     }
@@ -835,55 +887,56 @@ fun HomeScreen(
             title = resources.getString(R.string.msg_selected, selected.size.toString()),
             onDismissRequest = { selectionSheet = false },
         ) {
-            HailGroup {
-                BasicComponent(
+            val actions = listOf(
+                HailAction(
                     title = stringResource(R.string.action_freeze),
-                    onClick = {
-                        selectionSheet = false
-                        setListFrozen(true, selected.toList(), currentTagWorkingMode, false)
-                        deselect()
-                    },
-                )
-                BasicComponent(
+                    icon = Icons.Outlined.AcUnit,
+                ) {
+                    selectionSheet = false
+                    setListFrozen(true, selected.toList(), currentTagWorkingMode, false)
+                    deselect()
+                },
+                HailAction(
                     title = stringResource(R.string.action_unfreeze),
-                    onClick = {
-                        selectionSheet = false
-                        setListFrozen(false, selected.toList(), currentTagWorkingMode, false)
-                        deselect()
-                    },
-                )
-                BasicComponent(
+                    icon = Icons.Outlined.LockOpen,
+                ) {
+                    selectionSheet = false
+                    setListFrozen(false, selected.toList(), currentTagWorkingMode, false)
+                    deselect()
+                },
+                HailAction(
                     title = stringResource(R.string.action_tag_set),
-                    onClick = {
-                        selectionSheet = false
-                        openTagEditor(selected.toList())
-                    },
-                )
-                BasicComponent(
-                    title = stringResource(R.string.action_export_clipboard),
-                    onClick = {
-                        exportToClipboard(selected.toList())
-                        selectionSheet = false
-                        deselect()
-                    },
-                )
-                BasicComponent(
+                    icon = Icons.AutoMirrored.Outlined.Label,
+                ) {
+                    selectionSheet = false
+                    openTagEditor(selected.toList())
+                },
+                HailAction(
                     title = stringResource(R.string.action_remove_home),
-                    onClick = {
-                        selectionSheet = false
-                        selected.toList().forEach {
-                            HailData.removeCheckedApp(it.packageName, false)
-                        }
-                        HailData.saveApps()
-                        deselect()
-                        refresh()
-                    },
-                )
+                    icon = Icons.Outlined.DeleteOutline,
+                    destructive = true,
+                ) {
+                    selectionSheet = false
+                    selected.toList().forEach {
+                        HailData.removeCheckedApp(it.packageName, false)
+                    }
+                    HailData.saveApps()
+                    deselect()
+                    refresh()
+                },
+            )
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 12.dp),
+            ) {
+                HailActionGrid(actions)
+                Spacer(Modifier.height(12.dp))
             }
         }
     }
 
-    if (tagEditorTargets != null || tagEditorNew) {
+    if (tagEditorVisible) {
         val targets = tagEditorTargets
         val permission = HailData.workingPermission(HailData.workingMode)
         val supportedActions = HailData.supportedWorkingActions(permission)
@@ -895,53 +948,100 @@ fun HomeScreen(
             title = stringResource(
                 if (tagEditorNew) R.string.action_tag_add else R.string.action_tag_set,
             ),
-            onDismissRequest = {
-                tagEditorTargets = null
-                tagEditorNew = false
-            },
+            onDismissRequest = ::closeTagEditor,
         ) {
             TextField(
                 value = tagEditorName,
-                onValueChange = { tagEditorName = it },
+                onValueChange = {
+                    tagEditorName = it
+                    tagEditorError = null
+                },
                 label = stringResource(R.string.tag),
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
             )
-            Spacer(Modifier.height(12.dp))
-            Card {
-                OverlayDropdownPreference(
-                    items = actionEntries,
-                    selectedIndex = tagEditorAction,
-                    title = stringResource(R.string.tag_working_action),
-                    enabled = supportedActions.isNotEmpty(),
-                    onSelectedIndexChange = { tagEditorAction = it },
+            tagEditorError?.let {
+                Spacer(Modifier.height(6.dp))
+                Text(
+                    text = it,
+                    color = MiuixTheme.colorScheme.error,
+                    style = MiuixTheme.textStyles.body2,
                 )
             }
-            if (targets != null) {
-                Spacer(Modifier.height(12.dp))
-                Card {
-                    tags.forEach { tag ->
-                        val checked = tag.second in tagEditorSelections
-                        SwitchPreference(
-                            checked = checked,
-                            onCheckedChange = {
-                                tagEditorSelections = if (checked) {
-                                    tagEditorSelections - tag.second
-                                } else {
-                                    tagEditorSelections + tag.second
-                                }
-                            },
-                            title = tag.first,
+            Spacer(Modifier.height(12.dp))
+            Card(insideMargin = PaddingValues(horizontal = 16.dp, vertical = 12.dp)) {
+                Text(
+                    text = stringResource(R.string.tag_working_action),
+                    color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+                    style = MiuixTheme.textStyles.body2,
+                )
+                Spacer(Modifier.height(10.dp))
+                LazyRow(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    itemsIndexed(actionEntries) { index, label ->
+                        HailSelectablePill(
+                            text = label,
+                            selected = index == tagEditorAction,
+                            onClick = { tagEditorAction = index },
                         )
                     }
                 }
             }
-            if (!tagEditorNew && targets == null && safeTagIndex > 0 && currentTag != null) {
+            if (targets != null) {
+                Spacer(Modifier.height(12.dp))
+                Card(
+                    insideMargin = PaddingValues(horizontal = 12.dp, vertical = 10.dp),
+                ) {
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        tags.chunked(2).forEach { rowTags ->
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            ) {
+                                rowTags.forEach { tag ->
+                                    val selected = tag.second in tagEditorSelections
+                                    HailSelectablePill(
+                                        text = tag.first,
+                                        selected = selected,
+                                        onClick = {
+                                            tagEditorSelections = if (selected) {
+                                                tagEditorSelections - tag.second
+                                            } else {
+                                                tagEditorSelections + tag.second
+                                            }
+                                        },
+                                        modifier = Modifier.weight(1f),
+                                    )
+                                }
+                                if (rowTags.size == 1) {
+                                    Spacer(Modifier.weight(1f))
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            val editableTagId = tagEditorTagId
+            val editableTagIndex = HailData.tags.indexOfFirst { it.second == editableTagId }
+            if (!tagEditorNew &&
+                targets == null &&
+                editableTagId != null &&
+                editableTagId != 0 &&
+                editableTagIndex >= 0
+            ) {
                 Spacer(Modifier.height(12.dp))
                 TextButton(
                     text = stringResource(R.string.action_tag_remove),
                     onClick = {
-                        val removedTagId = currentTag.second
+                        val removedTagId = editableTagId
+                        val removeIndex = HailData.tags.indexOfFirst {
+                            it.second == removedTagId
+                        }
                         HailData.checkedList.toList().forEach { appInfo ->
                             if (appInfo.tagIdList.remove(removedTagId) &&
                                 appInfo.tagIdList.isEmpty()
@@ -949,14 +1049,13 @@ fun HomeScreen(
                                 removeFromHome(appInfo, save = false)
                             }
                         }
-                        HailData.tags.removeAt(safeTagIndex)
+                        if (removeIndex >= 0) HailData.tags.removeAt(removeIndex)
                         HailData.setTagWorkingAction(removedTagId, null)
                         HailData.saveApps()
                         HailData.saveTags()
                         tagVersion++
-                        selectedTagIndex = (safeTagIndex - 1).coerceAtLeast(0)
-                        tagEditorTargets = null
-                        tagEditorNew = false
+                        selectedTagIndex = (removeIndex - 1).coerceAtLeast(0)
+                        closeTagEditor()
                         refresh()
                     },
                     modifier = Modifier.fillMaxWidth(),
@@ -969,20 +1068,25 @@ fun HomeScreen(
             ) {
                 TextButton(
                     text = stringResource(android.R.string.cancel),
-                    onClick = {
-                        tagEditorTargets = null
-                        tagEditorNew = false
-                    },
+                    onClick = ::closeTagEditor,
                     modifier = Modifier.weight(1f),
                 )
                 Button(
                     onClick = {
                         val tagName = tagEditorName.text.trim()
                         val selectedAction = actionValues.getOrNull(tagEditorAction)
+                        val saveTagId = tagEditorTagId
+                        val saveTagIndex = HailData.tags.indexOfFirst {
+                            it.second == saveTagId
+                        }
+                        var shouldClose = true
                         when {
                             tagEditorNew && tagName.isNotEmpty() -> {
                                 val tagId = tagName.hashCode()
-                                if (tags.none { it.first == tagName || it.second == tagId }) {
+                                if (hasTagNameConflict(HailData.tags, tagName, tagId)) {
+                                    tagEditorError = resources.getString(R.string.tag_name_exists)
+                                    shouldClose = false
+                                } else {
                                     HailData.tags.add(tagName to tagId)
                                     HailData.setTagWorkingAction(tagId, selectedAction)
                                     HailData.saveTags()
@@ -994,50 +1098,79 @@ fun HomeScreen(
                                 var newTagId: Int? = null
                                 val tagId = tagName.hashCode()
                                 if (tagName.isNotEmpty() &&
-                                    tags.none { it.first == tagName || it.second == tagId }
+                                    hasTagNameConflict(HailData.tags, tagName, tagId)
                                 ) {
-                                    HailData.tags.add(tagName to tagId)
-                                    HailData.setTagWorkingAction(tagId, selectedAction)
-                                    HailData.saveTags()
-                                    tagVersion++
-                                    newTagId = tagId
-                                }
-                                val finalTags = tagEditorSelections + listOfNotNull(newTagId)
-                                targets.forEach { info ->
-                                    info.tagIdList.clear()
-                                    info.tagIdList.addAll(finalTags)
-                                    if (info.tagIdList.isEmpty()) {
-                                        removeFromHome(info, save = false)
+                                    tagEditorError = resources.getString(R.string.tag_name_exists)
+                                    shouldClose = false
+                                } else {
+                                    if (tagName.isNotEmpty()) {
+                                        HailData.tags.add(tagName to tagId)
+                                        HailData.setTagWorkingAction(tagId, selectedAction)
+                                        HailData.saveTags()
+                                        newTagId = tagId
                                     }
+                                    val finalTags = tagEditorSelections + listOfNotNull(newTagId)
+                                    val targetPackages = targets
+                                        .mapTo(mutableSetOf()) { it.packageName }
+                                    HailData.checkedList
+                                        .filter { it.packageName in targetPackages }
+                                        .forEach { info ->
+                                            info.tagIdList.clear()
+                                            info.tagIdList.addAll(finalTags)
+                                            if (info.tagIdList.isEmpty()) {
+                                                removeFromHome(info, save = false)
+                                            }
+                                        }
+                                    HailData.saveApps()
+                                    tagVersion++
+                                    refresh()
                                 }
-                                HailData.saveApps()
-                                refresh()
                             }
 
-                            currentTag != null && tagName.isNotEmpty() -> {
-                                val oldTag = currentTag
-                                val defaultTab = safeTagIndex == 0
-                                val newId = if (defaultTab) 0 else tagName.hashCode()
-                                HailData.tags[safeTagIndex] = tagName to newId
-                                if (!defaultTab) {
-                                    HailData.checkedList.forEach {
-                                        val index = it.tagIdList.indexOf(oldTag.second)
-                                        if (index >= 0) it.tagIdList[index] = newId
-                                    }
-                                    HailData.saveApps()
+                            saveTagId != null &&
+                                saveTagIndex >= 0 &&
+                                tagName.isNotEmpty() -> {
+                                val oldTag = HailData.tags[saveTagIndex]
+                                val defaultTab = saveTagId == 0
+                                val nameChanged = tagName != oldTag.first
+                                val newId = when {
+                                    defaultTab -> 0
+                                    nameChanged -> tagName.hashCode()
+                                    else -> oldTag.second
                                 }
-                                HailData.replaceTagWorkingAction(
-                                    oldTag.second,
-                                    newId,
-                                    selectedAction,
-                                )
-                                HailData.saveTags()
-                                tagVersion++
-                                refresh()
+                                if (hasTagNameConflict(
+                                        HailData.tags,
+                                        tagName,
+                                        newId,
+                                        excludedTagId = oldTag.second,
+                                    )
+                                ) {
+                                    tagEditorError = resources.getString(R.string.tag_name_exists)
+                                    shouldClose = false
+                                } else {
+                                    HailData.tags[saveTagIndex] = tagName to newId
+                                    if (!defaultTab && newId != oldTag.second) {
+                                        HailData.checkedList.forEach {
+                                            val index = it.tagIdList.indexOf(oldTag.second)
+                                            if (index >= 0) it.tagIdList[index] = newId
+                                        }
+                                        HailData.saveApps()
+                                    }
+                                    HailData.replaceTagWorkingAction(
+                                        oldTag.second,
+                                        newId,
+                                        selectedAction,
+                                    )
+                                    HailData.saveTags()
+                                    tagVersion++
+                                    selectedTagIndex = HailData.tags
+                                        .indexOfFirst { it.second == newId }
+                                        .coerceAtLeast(0)
+                                    refresh()
+                                }
                             }
                         }
-                        tagEditorTargets = null
-                        tagEditorNew = false
+                        if (shouldClose) closeTagEditor()
                     },
                     modifier = Modifier.weight(1f),
                 ) {
@@ -1071,44 +1204,14 @@ private fun TagButton(
     onClick: () -> Unit,
     onLongClick: (() -> Unit)? = null,
 ) {
-    val shape = RoundedCornerShape(50)
-    val hapticClick = rememberHapticClick(onClick)
-    val interactionSource = remember { MutableInteractionSource() }
-    val darkTheme = MiuixTheme.colorScheme.surface.luminance() < 0.5f
-    val pureColor = if (darkTheme) Color.Black else Color.White
-    val inverseColor = if (darkTheme) Color.White else Color.Black
-    val background by animateColorAsState(
-        targetValue = if (selected) inverseColor else pureColor,
-        label = "tagBackground",
+    HailSelectablePill(
+        text = text,
+        selected = selected,
+        onClick = onClick,
+        height = 32.dp,
+        maxWidth = 160.dp,
+        onLongClick = onLongClick,
     )
-    val foreground by animateColorAsState(
-        targetValue = if (selected) pureColor else inverseColor,
-        label = "tagForeground",
-    )
-    Box(
-        modifier = Modifier
-            .height(32.dp)
-            .widthIn(max = 160.dp)
-            .clip(shape)
-            .background(background)
-            .combinedClickable(
-                interactionSource = interactionSource,
-                indication = null,
-                onClick = hapticClick,
-                onLongClick = onLongClick,
-            )
-            .padding(horizontal = 14.dp),
-        contentAlignment = Alignment.Center,
-    ) {
-        Text(
-            text = text,
-            color = foreground,
-            fontSize = 13.sp,
-            fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-        )
-    }
 }
 
 @Composable
@@ -1135,26 +1238,6 @@ private fun AddTagButton(onClick: () -> Unit) {
             imageVector = Icons.Outlined.Add,
             contentDescription = stringResource(R.string.action_tag_add),
             tint = inverseColor,
-            modifier = Modifier.size(18.dp),
-        )
-    }
-}
-
-@Composable
-private fun MenuIcon(icon: ImageVector) {
-    Box(
-        modifier = Modifier
-            .size(32.dp)
-            .background(
-                MiuixTheme.colorScheme.surfaceContainerHigh,
-                RoundedCornerShape(10.dp),
-            ),
-        contentAlignment = Alignment.Center,
-    ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            tint = MiuixTheme.colorScheme.primary,
             modifier = Modifier.size(18.dp),
         )
     }

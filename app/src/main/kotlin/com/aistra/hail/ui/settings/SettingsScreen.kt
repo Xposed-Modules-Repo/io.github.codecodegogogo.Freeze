@@ -6,7 +6,10 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -348,6 +351,12 @@ fun SettingsScreen(
     } else {
         supportedActions.map { resources.getString(it.workingActionTitleId()) }
     }
+    val hasUnrestoredOperations = remember { hasUnrestoredAppOperations() }
+    val showRestoreFirst = {
+        messageDialog = MessageDialog(
+            message = resources.getString(R.string.restore_apps_before_switching_mode),
+        )
+    }
     val selectedActionIndex = actionValues
         .indexOf(HailData.workingAction(workingMode.first.value)).coerceAtLeast(0)
     val removeOwnerClick = rememberHapticClick {
@@ -391,33 +400,65 @@ fun SettingsScreen(
         ) {
             item {
                 HailGroup(title = stringResource(R.string.working_mode)) {
-                    OverlayDropdownPreference(
-                        items = permissionEntries.toList(),
-                        selectedIndex = HailData.WORKING_PERMISSION_VALUES
-                            .indexOf(permission).coerceAtLeast(0),
-                        title = stringResource(R.string.working_permission),
-                        startAction = { PreferenceIcon(Icons.Outlined.Adb) },
-                        onSelectedIndexChange = { index ->
-                            requestWorkingMode(
-                                HailData.combineWorkingMode(
-                                    HailData.WORKING_PERMISSION_VALUES[index],
-                                    HailData.workingAction(workingMode.first.value),
-                                ),
+                    Box {
+                        OverlayDropdownPreference(
+                            items = permissionEntries.toList(),
+                            selectedIndex = HailData.WORKING_PERMISSION_VALUES
+                                .indexOf(permission).coerceAtLeast(0),
+                            title = stringResource(R.string.working_permission),
+                            startAction = { PreferenceIcon(Icons.Outlined.Adb) },
+                            enabled = !hasUnrestoredOperations,
+                            onSelectedIndexChange = { index ->
+                                requestWorkingMode(
+                                    HailData.combineWorkingMode(
+                                        HailData.WORKING_PERMISSION_VALUES[index],
+                                        HailData.workingAction(workingMode.first.value),
+                                    ),
+                                )
+                            },
+                        )
+                        if (hasUnrestoredOperations) {
+                            Box(
+                                modifier = Modifier
+                                    .matchParentSize()
+                                    .clickable(
+                                        interactionSource = remember {
+                                            MutableInteractionSource()
+                                        },
+                                        indication = null,
+                                        onClick = showRestoreFirst,
+                                    ),
                             )
-                        },
-                    )
-                    OverlayDropdownPreference(
-                        items = actionEntries,
-                        selectedIndex = selectedActionIndex,
-                        title = stringResource(R.string.default_working_mode),
-                        enabled = supportedActions.isNotEmpty(),
-                        startAction = { PreferenceIcon(Icons.Outlined.Tune) },
-                        onSelectedIndexChange = { index ->
-                            requestWorkingMode(
-                                HailData.combineWorkingMode(permission, actionValues[index]),
+                        }
+                    }
+                    Box {
+                        OverlayDropdownPreference(
+                            items = actionEntries,
+                            selectedIndex = selectedActionIndex,
+                            title = stringResource(R.string.default_working_mode),
+                            enabled = !hasUnrestoredOperations &&
+                                supportedActions.isNotEmpty(),
+                            startAction = { PreferenceIcon(Icons.Outlined.Tune) },
+                            onSelectedIndexChange = { index ->
+                                requestWorkingMode(
+                                    HailData.combineWorkingMode(permission, actionValues[index]),
+                                )
+                            },
+                        )
+                        if (hasUnrestoredOperations) {
+                            Box(
+                                modifier = Modifier
+                                    .matchParentSize()
+                                    .clickable(
+                                        interactionSource = remember {
+                                            MutableInteractionSource()
+                                        },
+                                        indication = null,
+                                        onClick = showRestoreFirst,
+                                    ),
                             )
-                        },
-                    )
+                        }
+                    }
                     ArrowPreference(
                         title = stringResource(R.string.action_add_operation_apps),
                         startAction = { PreferenceIcon(Icons.Outlined.AddBox) },
@@ -699,8 +740,8 @@ private fun PreferenceIcon(icon: ImageVector) {
 }
 
 private fun hasUnrestoredAppOperations(): Boolean =
-    HailData.checkedList.any {
-        AppManager.isAppFrozen(it.packageName, HailData.MODE_DEFAULT)
+    HailData.appOperationsSnapshot().any { (workingMode, packageName) ->
+        AppManager.isAppFrozen(packageName, workingMode)
     }
 
 private fun String.workingActionTitleId(): Int = when (this) {

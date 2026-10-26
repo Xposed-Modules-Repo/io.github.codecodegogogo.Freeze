@@ -4,6 +4,8 @@ Freeze 是基于 [Hail](https://github.com/aistra0528/Hail) 修改的 Android �
 
 > 操作系统应用可能导致设备异常，严重时无法正常开机。请提前确认可通过 ADB、Root 或 Recovery 恢复。
 
+完整更新说明见 [CHANGELOG.md](CHANGELOG.md)。
+
 ## 快速开始
 
 1. 打开应用，进入日历界面。
@@ -87,7 +89,7 @@ Freeze 是基于 [Hail](https://github.com/aistra0528/Hail) 修改的 Android �
 
 ## MiPush 通知
 
-Freeze 直接移植了 New MiPush Enhance 的 Java 接收与点击代码，沿用传统 Xposed 入口，不再依赖独立模块。
+Freeze 直接移植了 New MiPush Enhance 的 Java 接收与点击代码，使用传统 Xposed 入口，不再依赖独立模块。
 
 - “设置 > 自定义 > MiPush”默认开启。
 - 在 LSPosed 中启用 Freeze 模块，并勾选“系统框架”和“小米服务框架”。
@@ -95,7 +97,7 @@ Freeze 直接移植了 New MiPush Enhance 的 Java 接收与点击代码，沿�
 - 首次发送失败后，依次等待 1.6 秒、0.9 秒重试；仍失败时保留原通知的页面参数进行启动，服务类通知则解析 MiPush 的页面、Intent 或网页跳转信息。
 - 该能力主要适配 Root 停用模式；应用本身必须接入 MiPush。
 - 未接入 MiPush 的应用不会因此收到推送。
-- 从旧实现升级时，在 LSPosed 中重新启用 Freeze，确认作用域后重启，再打开 Freeze 一次同步开关。测试时不要同时启用独立的 New MiPush Enhance 模块。
+- 模块声明使用 `xposedminversion=82`，走标准传统模块路径；从旧实现升级时，在 LSPosed 中重新启用 Freeze，确认作用域后重启，再打开 Freeze 一次同步开关。测试时不要同时启用独立的 New MiPush Enhance 模块。
 
 源码来自 [New-MiPush-Enhance](https://github.com/codecodegogogo/New-MiPush-Enhance)。保留原版接收器查询的占位返回值，不新增安全中心作用域；不包含原模块的自动冻结策略。桌面作用域仅供原有的桌面启动解冻使用。
 
@@ -107,7 +109,7 @@ Freeze 直接移植了 New MiPush Enhance 的 Java 接收与点击代码，沿�
 - 将工作模式拆分为“权限”和“默认模式”。
 - 增加标签独立模式和日历伪装。
 - 应用选择页增加草稿选择、筛选排序、目标分组确认流程。
-- 使用新的白底黑色雪花图标、Freeze 品牌和 `2.0.0` 版本。
+- 使用新的白底黑色雪花图标、Freeze 品牌和 `2.2.0` 版本。
 - APK 文件名为 `Calendar-v版本号.apk`。
 
 已移除图标包、灰度图标、紧凑图标、合成自适应图标、T9 九键搜索、快捷方式设置、快捷设置磁贴、无图标应用启动器、自动操作功能、首页右上角批量菜单、关于页捐助入口，以及底部导航栏中的“应用”和“关于”按钮；关于页的群组、QQ 群、F-Droid 和翻译入口也不再提供。

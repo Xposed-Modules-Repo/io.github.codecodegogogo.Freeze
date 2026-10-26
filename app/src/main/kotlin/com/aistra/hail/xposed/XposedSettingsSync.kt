@@ -2,6 +2,7 @@ package com.aistra.hail.xposed
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.Intent
 import android.content.SharedPreferences
 import android.util.Log
 import android.util.Xml
@@ -29,7 +30,14 @@ object XposedSettingsSync {
         } catch (_: SecurityException) {
             context.getSharedPreferences(MiPushPreferences.FILE_NAME, Context.MODE_PRIVATE)
         }
-        preferences.edit().putBoolean(MiPushPreferences.KEY_ENABLED, value).apply()
+        val saved = preferences.edit().putBoolean(MiPushPreferences.KEY_ENABLED, value).commit()
+        if (!saved) Log.w("Freeze-MiPush", "Cannot persist MiPush switch")
+        makeMipushPreferencesReadable()
+        context.sendBroadcast(
+            Intent(MiPushPreferences.ACTION_SETTINGS_CHANGED)
+                .setPackage("android")
+                .putExtra(MiPushPreferences.KEY_ENABLED, value),
+        )
     }
 
     internal fun migrateLegacyPreferences(context: Context) {

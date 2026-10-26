@@ -1,6 +1,7 @@
 package com.aistra.hail.xposed
 
 import android.app.Application
+import android.content.Intent
 import de.robv.android.xposed.XC_MethodHook
 import de.robv.android.xposed.callbacks.XCallback
 import org.junit.Assert.assertEquals
@@ -10,6 +11,8 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 import org.robolectric.annotation.Implementation
 import org.robolectric.annotation.Implements
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 
 @RunWith(RobolectricTestRunner::class)
 @Config(
@@ -22,6 +25,21 @@ import org.robolectric.annotation.Implements
     ],
 )
 class MiPushToggleHookTest {
+    @Test
+    fun preferenceBroadcastTakesEffectBeforeTheNextReload() {
+        MiPushPreferences.updateFromBroadcast(
+            Intent(MiPushPreferences.ACTION_SETTINGS_CHANGED)
+                .putExtra(MiPushPreferences.KEY_ENABLED, true),
+        )
+        assertTrue(MiPushPreferences.isEnabled())
+
+        MiPushPreferences.updateFromBroadcast(
+            Intent(MiPushPreferences.ACTION_SETTINGS_CHANGED)
+                .putExtra(MiPushPreferences.KEY_ENABLED, false),
+        )
+        assertFalse(MiPushPreferences.isEnabled())
+    }
+
     @Test
     fun enabledSwitchRunsBothOriginalCallbacks() {
         val hook = CountingHook(true)

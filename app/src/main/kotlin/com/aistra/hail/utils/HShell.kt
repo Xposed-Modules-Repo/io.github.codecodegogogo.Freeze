@@ -13,12 +13,40 @@ object HShell {
 
     fun execute(command: String, root: Boolean): Pair<Int, String?> = runCatching {
         ProcessBuilder(if (root) "su" else "sh").redirectErrorStream(true).start().run {
-            outputStream.use { it.write(command.toByteArray()) }
-            waitFor() to inputStream.bufferedReader().use { it.readText() }.also { destroy() }
+            outputStream.use {
+                it.write(command.toByteArray())
+                it.flush()
+            }
+            val output = inputStream.bufferedReader().use { it.readText() }
+            val exitCode = waitFor()
+            destroy()
+            exitCode to output
         }
     }.getOrElse { 1 to it.stackTraceToString() }
 
     private fun execSU(command: String) = execute(command, true)
+
+    private fun runBatch(
+        packages: List<String>,
+        command: String,
+        isExpectedState: (String) -> Boolean,
+    ): List<String> {
+        if (packages.isEmpty()) return emptyList()
+        val userId = getCurrentUserId()
+        packages.chunked(BulkCommand.CHUNK_SIZE).forEach {
+            execSU(BulkCommand.packageManager(command, it, userId))
+        }
+        return packages.filter(isExpectedState)
+    }
+
+    private fun runForceStopBatch(packages: List<String>): List<String> {
+        if (packages.isEmpty()) return emptyList()
+        val userId = getCurrentUserId()
+        packages.chunked(BulkCommand.CHUNK_SIZE).forEach {
+            execSU(BulkCommand.forceStop(it, userId))
+        }
+        return packages
+    }
 
     val checkSU get() = execSU("whoami").first == 0
 
@@ -28,6 +56,13 @@ object HShell {
 
     fun setAppDisabled(packageName: String, disabled: Boolean): Boolean =
         execSU("pm ${if (disabled) "disable" else "enable"} $userArg $packageName").first == 0
+
+    fun setAppsDisabled(packages: List<String>, disabled: Boolean): List<String> =
+        runBatch(
+            packages,
+            if (disabled) "disable" else "enable",
+            { HPackages.isAppDisabled(it) == disabled },
+        )
 
     fun setComponentEnabled(componentName: ComponentName, enabled: Boolean): Boolean {
         if (setComponentEnabledWithoutKilling(componentName, enabled)) return true
@@ -48,13 +83,29 @@ object HShell {
         return result.first == 0 && HPackages.isComponentEnabled(componentName) == enabled
     }
 
-    private fun shellQuote(value: String) = "'" + value.replace("'", "'\\''") + "'"
+    private fun shellQuote(value: String) = BulkCommand.shellQuote(value)
 
     fun setAppHidden(packageName: String, hidden: Boolean): Boolean =
         execSU("pm ${if (hidden) "hide" else "unhide"} $userArg $packageName").first == 0
 
+    fun setAppsHidden(packages: List<String>, hidden: Boolean): List<String> =
+        runBatch(
+            packages,
+            if (hidden) "hide" else "unhide",
+            { HPackages.isAppHidden(it) == hidden },
+        )
+
     fun setAppSuspended(packageName: String, suspended: Boolean): Boolean =
         execSU("pm ${if (suspended) "suspend" else "unsuspend"} $userArg $packageName").first == 0
+
+    fun setAppsSuspended(packages: List<String>, suspended: Boolean): List<String> =
+        runBatch(
+            packages,
+            if (suspended) "suspend" else "unsuspend",
+            { HPackages.isAppSuspended(it) == suspended },
+        )
+
+    fun forceStopApps(packages: List<String>): List<String> = runForceStopBatch(packages)
 
     fun uninstallApp(packageName: String) = execSU(
         "pm ${if (HPackages.canUninstallNormally(packageName)) "uninstall" else "uninstall $userArg"} $packageName"

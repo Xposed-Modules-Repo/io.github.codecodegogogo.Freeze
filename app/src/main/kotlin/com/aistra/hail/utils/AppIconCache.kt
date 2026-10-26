@@ -37,6 +37,9 @@ object AppIconCache {
         return lruCache[Triple(packageName, userId, size)]
     }
 
+    fun getCachedBitmap(packageName: String, userId: Int, size: Int): Bitmap? =
+        get(packageName, userId, size)
+
     private fun put(packageName: String, userId: Int, size: Int, bitmap: Bitmap) {
         if (get(packageName, userId, size) == null) {
             lruCache.put(Triple(packageName, userId, size), bitmap)

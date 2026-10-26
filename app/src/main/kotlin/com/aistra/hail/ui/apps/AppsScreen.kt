@@ -5,10 +5,7 @@ import android.content.pm.ApplicationInfo
 import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -21,9 +18,13 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Close
+import androidx.compose.material.icons.outlined.ContentCopy
+import androidx.compose.material.icons.outlined.DeleteOutline
+import androidx.compose.material.icons.outlined.FileDownload
+import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material.icons.outlined.Tune
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -35,7 +36,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
@@ -49,8 +49,11 @@ import com.aistra.hail.app.HailData
 import com.aistra.hail.extensions.exportFileName
 import com.aistra.hail.ui.common.AppIcon
 import com.aistra.hail.ui.common.EmptyState
+import com.aistra.hail.ui.common.HailAction
+import com.aistra.hail.ui.common.HailActionGrid
 import com.aistra.hail.ui.common.HailGroup
 import com.aistra.hail.ui.common.HailScreenScaffold
+import com.aistra.hail.ui.common.HailSelectablePill
 import com.aistra.hail.ui.common.rememberHapticClick
 import com.aistra.hail.ui.main.HailRoute
 import com.aistra.hail.utils.FuzzySearch
@@ -73,7 +76,6 @@ import top.yukonga.miuix.kmp.basic.InputField
 import top.yukonga.miuix.kmp.basic.SearchBar
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.basic.TextButton
-import top.yukonga.miuix.kmp.preference.SwitchPreference
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 import top.yukonga.miuix.kmp.window.WindowBottomSheet
 import top.yukonga.miuix.kmp.window.WindowDialog
@@ -356,51 +358,93 @@ fun AppsScreen(
             }
             Spacer(Modifier.height(12.dp))
             HailGroup(title = stringResource(R.string.filter_by)) {
-                SwitchPreference(
-                    checked = HailData.filterUserApps,
-                    onCheckedChange = {
-                        HailData.changeAppsFilter(HailData.FILTER_USER_APPS, it)
-                        if (it) HailData.changeAppsFilter(HailData.FILTER_SYSTEM_APPS, false)
-                        settingsVersion++
-                    },
-                    title = stringResource(R.string.filter_user_apps),
-                )
-                SwitchPreference(
-                    checked = HailData.filterSystemApps,
-                    onCheckedChange = { enabled ->
-                        if (enabled) {
-                            message = AppsMessage(
-                                message = resources.getString(R.string.freeze_system_app),
-                                actionLabel = resources.getString(R.string.action_continue),
-                                action = {
-                                    HailData.changeAppsFilter(HailData.FILTER_SYSTEM_APPS, true)
-                                    HailData.changeAppsFilter(HailData.FILTER_USER_APPS, false)
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 12.dp, vertical = 10.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        FilterChoice(
+                            text = stringResource(R.string.filter_user_apps),
+                            selected = HailData.filterUserApps,
+                            onClick = {
+                                val enabled = !HailData.filterUserApps
+                                HailData.changeAppsFilter(HailData.FILTER_USER_APPS, enabled)
+                                if (enabled) {
+                                    HailData.changeAppsFilter(
+                                        HailData.FILTER_SYSTEM_APPS,
+                                        false,
+                                    )
+                                }
+                                settingsVersion++
+                            },
+                            modifier = Modifier.weight(1f),
+                        )
+                        FilterChoice(
+                            text = stringResource(R.string.filter_system_apps),
+                            selected = HailData.filterSystemApps,
+                            onClick = {
+                                if (!HailData.filterSystemApps) {
+                                    message = AppsMessage(
+                                        message = resources.getString(R.string.freeze_system_app),
+                                        actionLabel = resources.getString(R.string.action_continue),
+                                        action = {
+                                            HailData.changeAppsFilter(
+                                                HailData.FILTER_SYSTEM_APPS,
+                                                true,
+                                            )
+                                            HailData.changeAppsFilter(
+                                                HailData.FILTER_USER_APPS,
+                                                false,
+                                            )
+                                            settingsVersion++
+                                        },
+                                    )
+                                } else {
+                                    HailData.changeAppsFilter(
+                                        HailData.FILTER_SYSTEM_APPS,
+                                        false,
+                                    )
                                     settingsVersion++
-                                },
-                            )
-                        } else {
-                            HailData.changeAppsFilter(HailData.FILTER_SYSTEM_APPS, false)
-                            settingsVersion++
-                        }
-                    },
-                    title = stringResource(R.string.filter_system_apps),
-                )
-                SwitchPreference(
-                    checked = HailData.filterFrozenApps,
-                    onCheckedChange = {
-                        HailData.changeAppsFilter(HailData.FILTER_FROZEN_APPS, it)
-                        settingsVersion++
-                    },
-                    title = stringResource(R.string.filter_frozen_apps),
-                )
-                SwitchPreference(
-                    checked = HailData.filterUnfrozenApps,
-                    onCheckedChange = {
-                        HailData.changeAppsFilter(HailData.FILTER_UNFROZEN_APPS, it)
-                        settingsVersion++
-                    },
-                    title = stringResource(R.string.filter_unfrozen_apps),
-                )
+                                }
+                            },
+                            modifier = Modifier.weight(1f),
+                        )
+                    }
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        FilterChoice(
+                            text = stringResource(R.string.filter_frozen_apps),
+                            selected = HailData.filterFrozenApps,
+                            onClick = {
+                                HailData.changeAppsFilter(
+                                    HailData.FILTER_FROZEN_APPS,
+                                    !HailData.filterFrozenApps,
+                                )
+                                settingsVersion++
+                            },
+                            modifier = Modifier.weight(1f),
+                        )
+                        FilterChoice(
+                            text = stringResource(R.string.filter_unfrozen_apps),
+                            selected = HailData.filterUnfrozenApps,
+                            onClick = {
+                                HailData.changeAppsFilter(
+                                    HailData.FILTER_UNFROZEN_APPS,
+                                    !HailData.filterUnfrozenApps,
+                                )
+                                settingsVersion++
+                            },
+                            modifier = Modifier.weight(1f),
+                        )
+                    }
+                }
             }
             Button(
                 onClick = { showFilters = false },
@@ -497,28 +541,40 @@ fun AppsScreen(
             title = info.loadLabel(app.packageManager).toString(),
             onDismissRequest = { actionApp = null },
         ) {
-            HailGroup {
-                BasicAction(stringResource(R.string.action_details)) {
+            val actions = listOf(
+                HailAction(
+                    title = stringResource(R.string.action_details),
+                    icon = Icons.Outlined.Info,
+                ) {
                     actionApp = null
                     HUI.startActivity(
                         Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
                         HPackages.packageUri(info.packageName),
                     )
-                }
-                BasicAction(stringResource(R.string.action_export_clipboard)) {
+                },
+                HailAction(
+                    title = stringResource(R.string.action_export_clipboard),
+                    icon = Icons.Outlined.ContentCopy,
+                ) {
                     actionApp = null
                     HUI.copyText(info.packageName)
                     HUI.showToast(R.string.msg_text_copied, info.packageName)
-                }
-                BasicAction(stringResource(R.string.action_extract_apk)) {
+                },
+                HailAction(
+                    title = stringResource(R.string.action_extract_apk),
+                    icon = Icons.Outlined.FileDownload,
+                ) {
                     actionApp = null
                     exportPackage = info.packageName
                     exportApk.launch(
                         HPackages.getUnhiddenPackageInfoOrNull(info.packageName)?.exportFileName
                             ?: info.packageName,
                     )
-                }
-                BasicAction(stringResource(R.string.action_reinstall)) {
+                },
+                HailAction(
+                    title = stringResource(R.string.action_reinstall),
+                    icon = Icons.Outlined.Refresh,
+                ) {
                     actionApp = null
                     scope.launch {
                         val success = withContext(Dispatchers.IO) {
@@ -527,8 +583,12 @@ fun AppsScreen(
                         if (success) refresh()
                         else HUI.showToast(R.string.operation_failed, info.packageName)
                     }
-                }
-                BasicAction(stringResource(R.string.action_uninstall)) {
+                },
+                HailAction(
+                    title = stringResource(R.string.action_uninstall),
+                    icon = Icons.Outlined.DeleteOutline,
+                    destructive = true,
+                ) {
                     actionApp = null
                     when {
                         HPackages.isAppUninstalled(info.packageName) ->
@@ -559,7 +619,15 @@ fun AppsScreen(
 
                         else -> pendingUninstall = info
                     }
-                }
+                },
+            )
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 12.dp),
+            ) {
+                HailActionGrid(actions)
+                Spacer(Modifier.height(12.dp))
             }
         }
     }
@@ -631,46 +699,18 @@ fun AppsScreen(
 }
 
 @Composable
-private fun BasicAction(title: String, onClick: () -> Unit) {
-    top.yukonga.miuix.kmp.basic.BasicComponent(
-        title = title,
-        onClick = onClick,
-    )
-}
-
-@Composable
 private fun FilterChoice(
     text: String,
     selected: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Box(
-        modifier = modifier
-            .height(38.dp)
-            .clip(RoundedCornerShape(50))
-            .background(
-                if (selected) {
-                    MiuixTheme.colorScheme.onSurface
-                } else {
-                    MiuixTheme.colorScheme.surfaceContainerHigh
-                },
-            )
-            .clickable(onClick = onClick),
-        contentAlignment = Alignment.Center,
-    ) {
-        Text(
-            text = text,
-            style = MiuixTheme.textStyles.body2,
-            color = if (selected) {
-                MiuixTheme.colorScheme.surface
-            } else {
-                MiuixTheme.colorScheme.onSurface
-            },
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-        )
-    }
+    HailSelectablePill(
+        text = text,
+        selected = selected,
+        onClick = onClick,
+        modifier = modifier,
+    )
 }
 
 @Composable
@@ -679,31 +719,9 @@ private fun GroupChoice(
     selected: Boolean,
     onClick: () -> Unit,
 ) {
-    Box(
-        modifier = Modifier
-            .height(34.dp)
-            .clip(RoundedCornerShape(50))
-            .background(
-                if (selected) {
-                    MiuixTheme.colorScheme.onSurface
-                } else {
-                    MiuixTheme.colorScheme.surfaceContainerHigh
-                },
-            )
-            .clickable(onClick = onClick)
-            .padding(horizontal = 14.dp),
-        contentAlignment = Alignment.Center,
-    ) {
-        Text(
-            text = text,
-            style = MiuixTheme.textStyles.body2,
-            color = if (selected) {
-                MiuixTheme.colorScheme.surface
-            } else {
-                MiuixTheme.colorScheme.onSurface
-            },
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-        )
-    }
+    HailSelectablePill(
+        text = text,
+        selected = selected,
+        onClick = onClick,
+    )
 }

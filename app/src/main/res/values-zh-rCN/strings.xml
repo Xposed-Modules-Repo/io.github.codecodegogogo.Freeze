@@ -32,6 +32,7 @@
     <string name="action_restore_current">恢复可见</string>
     <string name="action_open_operation_menu">打开操作菜单</string>
     <string name="action_close_operation_menu">关闭操作菜单</string>
+    <string name="action_operation">操作</string>
     <string name="action_next">下一步</string>
     <string name="action_done">完成</string>
     <string name="action_confirm_add">确定</string>
@@ -79,7 +80,7 @@
     <string name="msg_uninstall">要卸载此应用吗？</string>
     <string name="working_mode">工作模式</string>
     <string name="working_permission">权限</string>
-    <string name="restore_apps_before_switching_mode">在切换权限或者模式之前，请先恢复对所有软件的操作</string>
+    <string name="restore_apps_before_switching_mode">请先取消掉首页的操作</string>
     <string name="working_permission_shizuku">Shizuku</string>
     <string name="working_permission_root">Root</string>
     <string name="working_permission_dhizuku">Dhizuku</string>
@@ -101,7 +102,7 @@
     <string name="title_remove_owner">移除设备所有者</string>
     <string name="msg_remove_owner">将移除雹的设备所有者，移除后便无法冻结与解冻应用。
 \n已冻结的应用在移除设备所有者后仍会保持冻结状态，请确保您已将重要的应用解冻。</string>
-    <string name="tap_to_select">点按多选</string>
+    <string name="tap_to_select">多选</string>
     <string name="filter_by">筛选</string>
     <string name="filter_user_apps">用户</string>
     <string name="filter_system_apps">系统</string>
@@ -117,6 +118,7 @@
     <string name="shizuku_missing">Shizuku 失踪了（</string>
     <string name="operation_failed">操作失败：%s</string>
     <string name="msg_selected">已选择：%s</string>
+    <string name="msg_operation_in_progress">正在处理...</string>
     <string name="msg_exported">已导出：%s</string>
     <string name="msg_imported">已导入：%s</string>
     <string name="msg_text_copied">已复制：%s</string>
@@ -190,6 +192,7 @@
     <string name="tag">标签</string>
     <string name="tag_working_action">标签模式</string>
     <string name="tag_working_action_default">跟随默认模式</string>
+    <string name="tag_name_exists">标签名称已存在，请换一个名称</string>
     <string name="nine_key">T9 搜索</string>
     <string name="home_font_size">首页字体大小</string>
     <string name="home_icon_size">首页图标大小</string>

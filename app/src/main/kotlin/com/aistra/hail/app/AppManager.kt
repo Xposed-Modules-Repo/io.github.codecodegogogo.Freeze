@@ -16,46 +16,88 @@ object AppManager {
             else -> false
         }
 
-    fun isAppFrozen(packageName: String, workingMode: String = HailData.workingMode): Boolean = when {
-        workingMode.endsWith(HailData.STOP) -> HPackages.isAppStopped(packageName)
-        workingMode.endsWith(HailData.DISABLE) -> HPackages.isAppDisabled(packageName)
-        workingMode.endsWith(HailData.HIDE) -> HPackages.isAppHidden(packageName)
-        workingMode.endsWith(HailData.SUSPEND) -> HPackages.isAppSuspended(packageName)
-        else -> HPackages.isAppDisabled(packageName)
+    fun isAppFrozen(
+        packageName: String,
+        workingMode: String = HailData.workingMode,
+    ): Boolean = runCatching {
+        when {
+            workingMode.endsWith(HailData.STOP) -> HPackages.isAppStopped(packageName)
+            workingMode.endsWith(HailData.DISABLE) -> HPackages.isAppDisabled(packageName)
+            workingMode.endsWith(HailData.HIDE) -> HPackages.isAppHidden(packageName)
+            workingMode.endsWith(HailData.SUSPEND) -> HPackages.isAppSuspended(packageName)
+            else -> HPackages.isAppDisabled(packageName)
                 || HPackages.isAppHidden(packageName)
                 || HPackages.isAppSuspended(packageName)
-    }
+        }
+    }.getOrDefault(false)
 
     fun setListFrozen(frozen: Boolean, vararg appInfo: AppInfo): String? =
         setListFrozen(frozen, HailData.workingMode, *appInfo)
 
     fun setListFrozen(frozen: Boolean, workingMode: String, vararg appInfo: AppInfo): String? {
-        val excludeMe = appInfo.filter { it.packageName != BuildConfig.APPLICATION_ID }
-        var i = 0
+        val excludeMe = appInfo
+            .asSequence()
+            .filter {
+                it.packageName != BuildConfig.APPLICATION_ID &&
+                    !HPackages.isAppUninstalled(it.packageName)
+            }
+            .distinctBy { it.packageName }
+            .toList()
         var denied = false
-        var name = String()
-        when (workingMode) {
-            // call setListFrozen for some batch-style working mode here
-            // fallback to setAppFrozen otherwise
-            else -> {
-                excludeMe.forEach {
-                    when {
-                        setAppFrozen(it.packageName, frozen, workingMode) -> {
-                            i++
-                            name = it.name.toString()
-                        }
+        val packages = excludeMe.map { it.packageName }
+        val appliedPackages = when (workingMode) {
+            HailData.MODE_SU_STOP ->
+                if (frozen) HShell.forceStopApps(packages) else packages
 
-                        it.applicationInfo != null -> denied = true
+            HailData.MODE_SU_DISABLE -> HShell.setAppsDisabled(packages, frozen)
+            HailData.MODE_SU_HIDE -> HShell.setAppsHidden(packages, frozen)
+            HailData.MODE_SU_SUSPEND -> HShell.setAppsSuspended(packages, frozen)
+            HailData.MODE_SHIZUKU_STOP ->
+                if (frozen) HShizuku.forceStopApps(packages) else packages
+
+            HailData.MODE_SHIZUKU_DISABLE -> HShizuku.setAppsDisabled(packages, frozen)
+            HailData.MODE_SHIZUKU_HIDE -> HShizuku.setAppsHidden(packages, frozen)
+            HailData.MODE_SHIZUKU_SUSPEND -> HShizuku.setAppsSuspended(packages, frozen)
+            else -> {
+                buildList {
+                    excludeMe.forEach {
+                        when {
+                            runCatching {
+                                setAppFrozen(it.packageName, frozen, workingMode)
+                            }.getOrDefault(false) -> {
+                                add(it.packageName)
+                            }
+
+                            !HPackages.isAppUninstalled(it.packageName) -> denied = true
+                        }
                     }
                 }
             }
         }
-        return if (denied && i == 0) null else if (i == 1) name else i.toString()
+        HailData.recordAppOperations(appliedPackages, workingMode, frozen)
+        val i = appliedPackages.size
+        if (i == 0 && excludeMe.isNotEmpty()) {
+            denied = excludeMe.any { !HPackages.isAppUninstalled(it.packageName) }
+        }
+        return when {
+            denied && i == 0 -> null
+            i == 1 -> excludeMe.firstOrNull {
+                it.packageName == appliedPackages.single()
+            }?.name?.toString() ?: appliedPackages.single()
+
+            else -> i.toString()
+        }
     }
 
     fun setAppFrozen(
         packageName: String, frozen: Boolean, workingMode: String = HailData.workingMode
-    ): Boolean = packageName != BuildConfig.APPLICATION_ID && when (workingMode) {
+    ): Boolean {
+        if (packageName == BuildConfig.APPLICATION_ID ||
+            HPackages.isAppUninstalled(packageName)
+        ) {
+            return false
+        }
+        val applied = when (workingMode) {
             HailData.MODE_OWNER_HIDE -> HPolicy.setAppHidden(packageName, frozen)
             HailData.MODE_OWNER_SUSPEND -> HPolicy.setAppSuspended(packageName, frozen)
             HailData.MODE_DHIZUKU_HIDE -> HDhizuku.setAppHidden(packageName, frozen)
@@ -74,6 +116,11 @@ object AppManager {
             HailData.MODE_PRIVAPP_DISABLE -> HPackages.setAppDisabled(packageName, frozen)
             else -> false
         }
+        if (applied) {
+            HailData.recordAppOperations(listOf(packageName), workingMode, frozen)
+        }
+        return applied
+    }
 
     fun uninstallApp(packageName: String): Boolean {
         when {

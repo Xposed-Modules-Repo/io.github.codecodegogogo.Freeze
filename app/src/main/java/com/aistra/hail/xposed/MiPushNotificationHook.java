@@ -59,9 +59,14 @@ public class MiPushNotificationHook implements IXposedHookLoadPackage {
 
     @Override
     public void handleLoadPackage(XC_LoadPackage.LoadPackageParam loadPackageParam) throws Throwable {
+        MiPushPreferences.setClassLoader(loadPackageParam.classLoader);
+        if ("android".equals(loadPackageParam.packageName)) {
+            MiPushPreferences.setClientContext(getSystemContext(loadPackageParam.classLoader));
+        }
         hookMipushReceiverQuery(loadPackageParam);
 
         if ("android".equals(loadPackageParam.packageName)) {
+            hookPreferenceBroadcast(loadPackageParam.classLoader);
             hookPendingIntentWake(loadPackageParam.classLoader);
             hookActivityStartWake(loadPackageParam.classLoader);
             hookServiceStartWake(loadPackageParam.classLoader);
@@ -181,6 +186,33 @@ public class MiPushNotificationHook implements IXposedHookLoadPackage {
 
     private void hookBroadcastWake(final ClassLoader classLoader) {
         hookBroadcastClass("com.android.server.am.ActivityManagerService", classLoader);
+    }
+
+    private void hookPreferenceBroadcast(final ClassLoader classLoader) {
+        Class<?> serviceClass = findClassSafely(
+                "com.android.server.am.ActivityManagerService",
+                classLoader);
+        if (serviceClass == null) {
+            return;
+        }
+
+        XC_MethodHook listener = new XC_MethodHook() {
+            @Override
+            protected void beforeHookedMethod(MethodHookParam param) {
+                for (Object arg : param.args) {
+                    if (arg instanceof Intent) {
+                        MiPushPreferences.updateFromBroadcast((Intent) arg);
+                    }
+                }
+            }
+        };
+        try {
+            XposedBridge.hookAllMethods(serviceClass, "broadcastIntentWithFeature", listener);
+            XposedBridge.hookAllMethods(serviceClass, "broadcastIntent", listener);
+            log("MiPush preference broadcast hook installed");
+        } catch (Throwable e) {
+            log("MiPush preference broadcast hook failed: " + e);
+        }
     }
 
     private void hookStartActivityClass(String className, final ClassLoader classLoader) {

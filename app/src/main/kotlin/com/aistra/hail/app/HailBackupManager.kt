@@ -5,6 +5,8 @@ import android.content.pm.PackageManager
 import androidx.core.content.edit
 import androidx.preference.PreferenceManager
 import com.aistra.hail.HailApp.Companion.app
+import com.aistra.hail.utils.HPackages
+import com.aistra.hail.xposed.XposedSettingsSync
 import org.json.JSONArray
 import org.json.JSONObject
 
@@ -17,13 +19,15 @@ data class HailBackupSummary(
 
 object HailBackupManager {
     private const val FORMAT = "hail-backup"
-    private const val VERSION = 1
+    private const val VERSION = 2
 
     fun createBackup(): String {
         val preferences = PreferenceManager.getDefaultSharedPreferences(app)
         val settings = JSONObject()
         preferences.all.forEach { (key, value) ->
-            encodePreference(value)?.let { settings.put(key, it) }
+            if (key != HailData.KEY_APP_OPERATIONS) {
+                encodePreference(value)?.let { settings.put(key, it) }
+            }
         }
 
         val apps = JSONArray().apply {
@@ -33,17 +37,20 @@ object HailBackupManager {
                         .put("package", info.packageName)
                         .put("pinned", info.pinned)
                         .put("whitelisted", info.whitelisted)
+                        .put("installed", !HPackages.isAppUninstalled(info.packageName))
                         .put("tags", JSONArray(info.tagIdList)),
                 )
             }
         }
         val tags = JSONArray().apply {
             HailData.tags.forEach { (name, id) ->
+                val action = HailData.tagWorkingAction(id)
                 put(
                     JSONObject()
                         .put("name", name)
                         .put("id", id)
-                        .put("workingMode", HailData.tagWorkingAction(id) ?: JSONObject.NULL),
+                        .put("workingMode", HailData.tagWorkingMode(id))
+                        .put("action", action ?: JSONObject.NULL),
                 )
             }
         }
@@ -114,7 +121,15 @@ object HailBackupManager {
             val item = tags.getJSONObject(index)
             val id = item.getInt("id")
             restoredTags += item.getString("name") to id
-            item.optString("workingMode").takeIf { it.isNotBlank() }?.let {
+            val action = when {
+                item.has("action") && !item.isNull("action") -> item.optString("action")
+                !item.has("action") &&
+                    item.has("workingMode") &&
+                    !item.isNull("workingMode") -> item.optString("workingMode")
+
+                else -> null
+            }
+            action?.takeIf { it.isNotBlank() }?.let {
                 restoredTagActions[id] = it
             }
         }
@@ -124,6 +139,7 @@ object HailBackupManager {
         HailData.restoreTagWorkingActions(restoredTagActions)
 
         app.setAppTheme(HailData.appTheme)
+        XposedSettingsSync.update(HailData.mipushEnhance)
         applyCalendarLauncher(HailData.calendarDisguise)
     }
 

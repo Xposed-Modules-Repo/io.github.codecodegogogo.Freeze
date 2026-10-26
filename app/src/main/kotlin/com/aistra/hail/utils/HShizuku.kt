@@ -18,6 +18,8 @@ import org.lsposed.hiddenapibypass.HiddenApiBypass
 import rikka.shizuku.Shizuku
 import rikka.shizuku.ShizukuBinderWrapper
 import rikka.shizuku.SystemServiceHelper
+import java.io.StringWriter
+import kotlin.concurrent.thread
 
 object HShizuku {
     val isRoot get() = Shizuku.getUid() == 0
@@ -30,6 +32,30 @@ object HShizuku {
 
     private fun asInterface(className: String, serviceName: String): Any =
         asInterface(className, SystemServiceHelper.getSystemService(serviceName))
+
+    private fun runBatch(
+        packages: List<String>,
+        command: String,
+        isExpectedState: (String) -> Boolean,
+    ): List<String> {
+        if (packages.isEmpty()) return emptyList()
+        val resolvedCommand = when {
+            command == "disable" && !isRoot -> "disable-user"
+            else -> command
+        }
+        packages.chunked(BulkCommand.CHUNK_SIZE).forEach {
+            execute(BulkCommand.packageManager(resolvedCommand, it, HPackages.myUserId))
+        }
+        return packages.filter(isExpectedState)
+    }
+
+    private fun runForceStopBatch(packages: List<String>): List<String> {
+        if (packages.isEmpty()) return emptyList()
+        packages.chunked(BulkCommand.CHUNK_SIZE).forEach {
+            execute(BulkCommand.forceStop(it, HPackages.myUserId))
+        }
+        return packages
+    }
 
     val lockScreen
         get() = runCatching {
@@ -90,6 +116,13 @@ object HShizuku {
         return HPackages.isAppDisabled(packageName) == disabled
     }
 
+    fun setAppsDisabled(packages: List<String>, disabled: Boolean): List<String> =
+        runBatch(
+            packages,
+            if (disabled) "disable" else "enable",
+            { HPackages.isAppDisabled(it) == disabled },
+        )
+
     fun setComponentEnabled(componentName: ComponentName, enabled: Boolean): Boolean {
         if (setComponentEnabledWithoutKilling(componentName, enabled)) return true
 
@@ -141,6 +174,13 @@ object HShizuku {
         }
     }
 
+    fun setAppsHidden(packages: List<String>, hidden: Boolean): List<String> =
+        runBatch(
+            packages,
+            if (hidden) "hide" else "unhide",
+            { HPackages.isAppHidden(it) == hidden },
+        )
+
     fun setAppSuspended(packageName: String, suspended: Boolean): Boolean {
         HPackages.getApplicationInfoOrNull(packageName) ?: return false
         if (HTarget.P) setAppRestricted(packageName, suspended)
@@ -188,6 +228,15 @@ object HShizuku {
             false
         }
     }
+
+    fun setAppsSuspended(packages: List<String>, suspended: Boolean): List<String> =
+        runBatch(
+            packages,
+            if (suspended) "suspend" else "unsuspend",
+            { HPackages.isAppSuspended(it) == suspended },
+        )
+
+    fun forceStopApps(packages: List<String>): List<String> = runForceStopBatch(packages)
 
     @RequiresApi(Build.VERSION_CODES.Q)
     private fun setPackagesSuspendedAsUserSinceQ(pm: Any, packageName: String, suspended: Boolean): Any =
@@ -251,16 +300,40 @@ object HShizuku {
     fun reinstallApp(packageName: String): Boolean =
         execute("pm install-existing --user current $packageName").first == 0
 
-    fun execute(command: String, root: Boolean = isRoot): Pair<Int, String?> = runCatching {
-        IShizukuService.Stub.asInterface(Shizuku.getBinder()).newProcess(arrayOf(if (root) "su" else "sh"), null, null)
+    fun execute(command: String): Pair<Int, String?> = runCatching {
+        // Shizuku already runs the child process with the server's uid. If the
+        // server is root, invoking "su" fails on systems that do not ship a su binary.
+        IShizukuService.Stub.asInterface(Shizuku.getBinder()).newProcess(arrayOf("sh"), null, null)
             .run {
                 ParcelFileDescriptor.AutoCloseOutputStream(outputStream).use {
                     it.write(command.toByteArray())
+                    it.flush()
                 }
-                waitFor() to inputStream.text.ifBlank { errorStream.text }.also { destroy() }
+                val output = StringWriter()
+                val error = StringWriter()
+                val outputReader = thread(name = "hail-shizuku-output", isDaemon = true) {
+                    runCatching {
+                        ParcelFileDescriptor.AutoCloseInputStream(inputStream).bufferedReader().use {
+                            it.copyTo(output)
+                        }
+                    }.onFailure {
+                        error.append(it.stackTraceToString())
+                    }
+                }
+                val errorReader = thread(name = "hail-shizuku-error", isDaemon = true) {
+                    runCatching {
+                        ParcelFileDescriptor.AutoCloseInputStream(errorStream).bufferedReader().use {
+                            it.copyTo(error)
+                        }
+                    }.onFailure {
+                        error.append(it.stackTraceToString())
+                    }
+                }
+                val exitCode = waitFor()
+                outputReader.join()
+                errorReader.join()
+                destroy()
+                exitCode to output.toString().ifBlank { error.toString() }
             }
     }.getOrElse { 1 to it.stackTraceToString() }
-
-    private val ParcelFileDescriptor.text
-        get() = ParcelFileDescriptor.AutoCloseInputStream(this).bufferedReader().use { it.readText() }
 }

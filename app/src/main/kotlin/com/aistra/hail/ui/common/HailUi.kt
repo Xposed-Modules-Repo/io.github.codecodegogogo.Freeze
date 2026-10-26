@@ -1,12 +1,15 @@
+@file:OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
+
 package com.aistra.hail.ui.common
 
 import android.content.pm.ApplicationInfo
 import android.graphics.Bitmap
-import android.graphics.drawable.Drawable
 import android.view.HapticFeedbackConstants
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
@@ -16,6 +19,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.displayCutout
@@ -29,6 +33,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -51,15 +56,17 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.core.graphics.drawable.toBitmap
+import androidx.compose.ui.unit.sp
 import com.aistra.hail.R
 import com.aistra.hail.app.AppInfo
 import com.aistra.hail.app.HailData
@@ -101,6 +108,161 @@ fun rememberHapticClick(onClick: () -> Unit): () -> Unit {
     }
 }
 
+data class HailAction(
+    val title: String,
+    val icon: ImageVector?,
+    val destructive: Boolean = false,
+    val onClick: () -> Unit,
+)
+
+@Composable
+fun HailActionGrid(
+    actions: List<HailAction>,
+    modifier: Modifier = Modifier,
+    columns: Int = 2,
+) {
+    Column(
+        modifier = modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        actions.chunked(columns.coerceAtLeast(1)).forEach { rowActions ->
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                rowActions.forEach { action ->
+                    HailActionButton(
+                        action = action,
+                        modifier = Modifier.weight(1f),
+                    )
+                }
+                repeat(columns - rowActions.size) {
+                    Spacer(Modifier.weight(1f))
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun HailActionButton(
+    action: HailAction,
+    modifier: Modifier = Modifier,
+) {
+    val hapticClick = rememberHapticClick(action.onClick)
+    val contentColor = if (action.destructive) {
+        MiuixTheme.colorScheme.error
+    } else {
+        MiuixTheme.colorScheme.onSurface
+    }
+    Row(
+        modifier = modifier
+            .height(68.dp)
+            .clip(RoundedCornerShape(20.dp))
+            .background(
+                if (action.destructive) {
+                    MiuixTheme.colorScheme.error.copy(alpha = 0.10f)
+                } else {
+                    MiuixTheme.colorScheme.surfaceContainerHigh
+                },
+            )
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null,
+                onClick = hapticClick,
+            )
+            .padding(horizontal = 12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        action.icon?.let { icon ->
+            Box(
+                modifier = Modifier
+                    .size(38.dp)
+                    .clip(CircleShape)
+                    .background(
+                        if (action.destructive) {
+                            MiuixTheme.colorScheme.error.copy(alpha = 0.12f)
+                        } else {
+                            MiuixTheme.colorScheme.surfaceContainerHighest
+                        },
+                    ),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    tint = contentColor,
+                    modifier = Modifier.size(22.dp),
+                )
+            }
+            Spacer(Modifier.size(11.dp))
+        }
+        Text(
+            text = action.title,
+            modifier = Modifier.weight(1f),
+            color = contentColor,
+            fontSize = 14.sp,
+            fontWeight = FontWeight.Medium,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            textAlign = if (action.icon == null) TextAlign.Center else TextAlign.Start,
+        )
+    }
+}
+
+@Composable
+fun HailSelectablePill(
+    text: String,
+    selected: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    height: Dp = 34.dp,
+    maxWidth: Dp? = null,
+    onLongClick: (() -> Unit)? = null,
+) {
+    val hapticClick = rememberHapticClick(onClick)
+    val background by animateColorAsState(
+        targetValue = if (selected) {
+            MiuixTheme.colorScheme.onSurface
+        } else {
+            MiuixTheme.colorScheme.surfaceContainerHigh
+        },
+        label = "pillBackground",
+    )
+    val foreground by animateColorAsState(
+        targetValue = if (selected) {
+            MiuixTheme.colorScheme.surface
+        } else {
+            MiuixTheme.colorScheme.onSurface
+        },
+        label = "pillForeground",
+    )
+    Box(
+        modifier = modifier
+            .height(height)
+            .then(if (maxWidth != null) Modifier.widthIn(max = maxWidth) else Modifier)
+            .clip(RoundedCornerShape(50))
+            .background(background)
+            .combinedClickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null,
+                onClick = hapticClick,
+                onLongClick = onLongClick,
+            )
+            .padding(horizontal = 14.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(
+            text = text,
+            color = foreground,
+            fontSize = 13.sp,
+            fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
+    }
+}
+
 @Composable
 fun HailScreenScaffold(
     title: String,
@@ -136,6 +298,7 @@ fun HailScreenScaffold(
                     HailQuickActionButton(
                         onClick = { HUI.showToast(R.string.action_unavailable_on_page) },
                         showBackground = false,
+                        size = if (floatingNavigationBar) 52.dp else 36.dp,
                         contentColor = MiuixTheme.colorScheme.onSurface.copy(alpha = 0.4f),
                         pressedContentColor = MiuixTheme.colorScheme.onSurface,
                         contentDescription = stringResource(R.string.action_open_operation_menu),
@@ -431,9 +594,24 @@ private fun HailNavigationBar(
                 modifier = Modifier
                     .weight(1f)
                     .height(NavigationBarDefaults.ItemHeight),
-                contentAlignment = Alignment.Center,
             ) {
-                trailingAction()
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.TopCenter)
+                        .padding(top = 2.dp),
+                ) {
+                    trailingAction()
+                }
+                Text(
+                    text = stringResource(R.string.action_operation),
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .padding(bottom = 12.dp),
+                    color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Medium,
+                    maxLines = 1,
+                )
             }
         }
     }
@@ -515,32 +693,34 @@ fun AppIcon(
     val context = LocalContext.current
     val density = LocalDensity.current
     val sizePx = with(density) { size.roundToPx() }
-    var bitmap by remember(info?.packageName, packageName, sizePx) {
-        mutableStateOf<Bitmap?>(null)
+    val iconPackageName = info?.packageName ?: packageName
+    val userId = HPackages.myUserId
+    var bitmap by remember(iconPackageName, sizePx) {
+        mutableStateOf(
+            iconPackageName?.let {
+                AppIconCache.getCachedBitmap(it, userId, sizePx)
+            },
+        )
     }
-    LaunchedEffect(info?.packageName, packageName, sizePx) {
+    LaunchedEffect(iconPackageName, sizePx) {
         bitmap = withContext(Dispatchers.IO) {
             runCatching {
                 when {
                     info != null -> AppIconCache.getOrLoadBitmap(
                         context,
                         info,
-                        HPackages.myUserId,
+                        userId,
                         sizePx,
                     )
 
                     packageName != null -> HPackages.getApplicationInfoOrNull(packageName)
-                        ?.let { AppIconCache.getOrLoadBitmap(context, it, HPackages.myUserId, sizePx) }
+                        ?.let { AppIconCache.getOrLoadBitmap(context, it, userId, sizePx) }
 
                     else -> null
                 }
             }.getOrNull()
         }
     }
-    val fallback: Drawable? = remember(packageName) {
-        runCatching { context.packageManager.defaultActivityIcon }.getOrNull()
-    }
-    val image = bitmap ?: fallback?.toBitmap(sizePx, sizePx)
     Box(
         modifier = modifier
             .size(size)
@@ -553,7 +733,7 @@ fun AppIcon(
             ),
         contentAlignment = Alignment.Center,
     ) {
-        if (image != null) {
+        bitmap?.let { image ->
             Image(
                 bitmap = image.asImageBitmap(),
                 contentDescription = null,

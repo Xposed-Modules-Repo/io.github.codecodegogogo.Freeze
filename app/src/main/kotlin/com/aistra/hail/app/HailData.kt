@@ -80,6 +80,7 @@ object HailData {
     const val HOME_ICON_COUNT = "home_icon_count"
     const val FUZZY_SEARCH = "fuzzy_search"
     const val MIPUSH_ENHANCE = "mipush_enhance"
+    const val KEY_APP_OPERATIONS = "app_operations"
 
     private val sp = PreferenceManager.getDefaultSharedPreferences(app)
     val sortBy get() = sp.getString(SORT_BY, SORT_NAME)
@@ -182,7 +183,10 @@ object HailData {
                     add(with(json.getJSONObject(i)) { getString(KEY_TAG) to getInt(KEY_ID) })
                 }
             }.onFailure {
-                add(app.getString(R.string.label_default) to 0)
+                add(
+                    runCatching { app.getString(R.string.label_default) }
+                        .getOrDefault("Default") to 0,
+                )
             }
         }
     }
@@ -200,7 +204,8 @@ object HailData {
     private val tagWorkingActions: MutableMap<Int, String> by lazy {
         mutableMapOf<Int, String>().apply {
             runCatching {
-                val json = JSONObject(HFiles.read(tagWorkingActionsPath))
+                val content = HFiles.read(tagWorkingActionsPath) ?: return@runCatching
+                val json = JSONObject(content)
                 json.keys().forEach { tagId ->
                     val action = json.getString(tagId)
                     if (action in WORKING_ACTION_VALUES) put(tagId.toInt(), action)
@@ -219,6 +224,33 @@ object HailData {
             if (action in WORKING_ACTION_VALUES) tagWorkingActions[tagId] = action
         }
         saveTagWorkingActions()
+    }
+
+    fun appOperationsSnapshot(): Set<Pair<String, String>> =
+        sp.getStringSet(KEY_APP_OPERATIONS, emptySet())
+            .orEmpty()
+            .mapNotNull { value ->
+                val separator = value.indexOf('\u0000')
+                if (separator <= 0 || separator == value.lastIndex) {
+                    null
+                } else {
+                    value.substring(0, separator) to value.substring(separator + 1)
+                }
+            }
+            .toSet()
+
+    fun hasAppOperation(packageName: String, workingMode: String): Boolean =
+        "$workingMode\u0000$packageName" in
+            sp.getStringSet(KEY_APP_OPERATIONS, emptySet()).orEmpty()
+
+    fun recordAppOperations(packageNames: Collection<String>, workingMode: String, active: Boolean) {
+        if (packageNames.isEmpty() || workingMode == MODE_DEFAULT) return
+        val operations = sp.getStringSet(KEY_APP_OPERATIONS, emptySet()).orEmpty().toMutableSet()
+        packageNames.forEach { packageName ->
+            val operation = "$workingMode\u0000$packageName"
+            if (active) operations.add(operation) else operations.remove(operation)
+        }
+        sp.edit { putStringSet(KEY_APP_OPERATIONS, operations) }
     }
 
     fun tagWorkingMode(tagId: Int): String {

@@ -7,11 +7,15 @@ import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.Launch
-import androidx.compose.material.icons.rounded.AcUnit
-import androidx.compose.material.icons.rounded.BrightnessLow
+import androidx.compose.material.icons.outlined.AcUnit
+import androidx.compose.material.icons.outlined.LockOpen
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -20,15 +24,19 @@ import com.aistra.hail.app.AppInfo
 import com.aistra.hail.app.AppManager
 import com.aistra.hail.app.HailApi
 import com.aistra.hail.app.HailData
-import com.aistra.hail.ui.common.HailGroup
+import com.aistra.hail.ui.common.HailAction
+import com.aistra.hail.ui.common.HailActionGrid
 import com.aistra.hail.ui.theme.AppTheme
 import com.aistra.hail.utils.*
-import top.yukonga.miuix.kmp.basic.BasicComponent
+import androidx.lifecycle.lifecycleScope
 import top.yukonga.miuix.kmp.basic.Button
-import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.window.WindowBottomSheet
 import top.yukonga.miuix.kmp.window.WindowDialog
+import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class ApiActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -47,20 +55,51 @@ class ApiActivity : ComponentActivity() {
 
             Intent.ACTION_VIEW -> return handleSchema(intent.data)
 
-            HailApi.ACTION_LAUNCH -> launchApp(requirePackage, runCatching { requireTagId }.getOrNull())
+            HailApi.ACTION_LAUNCH -> {
+                launchApp(requirePackage, runCatching { requireTagId }.getOrNull())
+                return false
+            }
             HailApi.ACTION_FREEZE -> setAppFrozen(requirePackage, true)
             HailApi.ACTION_UNFREEZE -> setAppFrozen(requirePackage, false)
-            HailApi.ACTION_FREEZE_TAG -> setListFrozen(
-                true, HailData.checkedList.filter { requireTagId in it.tagIdList }, true
-            )
+            HailApi.ACTION_FREEZE_TAG -> {
+                val tagId = requireTagId
+                setListFrozen(
+                    true,
+                    HailData.checkedList.filter { tagId in it.tagIdList },
+                    true,
+                    HailData.tagWorkingMode(tagId),
+                )
+                return false
+            }
 
-            HailApi.ACTION_UNFREEZE_TAG -> setListFrozen(
-                false, HailData.checkedList.filter { requireTagId in it.tagIdList })
+            HailApi.ACTION_UNFREEZE_TAG -> {
+                val tagId = requireTagId
+                setListFrozen(
+                    false,
+                    HailData.checkedList.filter { tagId in it.tagIdList },
+                    workingMode = HailData.tagWorkingMode(tagId),
+                )
+                return false
+            }
 
-            HailApi.ACTION_FREEZE_ALL -> setListFrozen(true)
-            HailApi.ACTION_UNFREEZE_ALL -> setListFrozen(false)
-            HailApi.ACTION_LOCK -> lockScreen(false)
-            HailApi.ACTION_LOCK_FREEZE -> lockScreen(true)
+            HailApi.ACTION_FREEZE_ALL -> {
+                setListFrozen(true)
+                return false
+            }
+
+            HailApi.ACTION_UNFREEZE_ALL -> {
+                setListFrozen(false)
+                return false
+            }
+            HailApi.ACTION_LOCK -> {
+                lockScreen(false)
+                return false
+            }
+
+            HailApi.ACTION_LOCK_FREEZE -> {
+                lockScreen(true)
+                return false
+            }
             else -> throw IllegalArgumentException("Unknown action:\n$action")
         }
         return true
@@ -107,44 +146,42 @@ class ApiActivity : ComponentActivity() {
                 ?: pkg,
             onDismissRequest = ::finish,
         ) {
-            HailGroup {
-                BasicComponent(
+            val actions = listOf(
+                HailAction(
                     title = stringResource(R.string.action_launch),
-                    startAction = {
-                        Icon(Icons.AutoMirrored.Outlined.Launch, contentDescription = null)
-                    },
-                    onClick = {
-                        runCatching {
-                            launchApp(pkg)
-                            finish()
-                        }.onFailure(::setErrorDialog)
-                    },
-                )
-                BasicComponent(
+                    icon = Icons.AutoMirrored.Outlined.Launch,
+                ) {
+                    runCatching {
+                        launchApp(pkg)
+                    }.onFailure(::setErrorDialog)
+                },
+                HailAction(
                     title = stringResource(R.string.action_freeze),
-                    startAction = {
-                        Icon(Icons.Rounded.AcUnit, contentDescription = null)
-                    },
-                    onClick = {
-                        runCatching {
-                            if (!HailData.isChecked(pkg)) HailData.addCheckedApp(pkg)
-                            setAppFrozen(pkg, true)
-                            finish()
-                        }.onFailure(::setErrorDialog)
-                    },
-                )
-                BasicComponent(
+                    icon = Icons.Outlined.AcUnit,
+                ) {
+                    runCatching {
+                        if (!HailData.isChecked(pkg)) HailData.addCheckedApp(pkg)
+                        setAppFrozen(pkg, true)
+                        finish()
+                    }.onFailure(::setErrorDialog)
+                },
+                HailAction(
                     title = stringResource(R.string.action_unfreeze),
-                    startAction = {
-                        Icon(Icons.Rounded.BrightnessLow, contentDescription = null)
-                    },
-                    onClick = {
-                        runCatching {
-                            setAppFrozen(pkg, false)
-                            finish()
-                        }.onFailure(::setErrorDialog)
-                    },
-                )
+                    icon = Icons.Outlined.LockOpen,
+                ) {
+                    runCatching {
+                        setAppFrozen(pkg, false)
+                        finish()
+                    }.onFailure(::setErrorDialog)
+                },
+            )
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 12.dp),
+            ) {
+                HailActionGrid(actions)
+                Spacer(Modifier.height(12.dp))
             }
         }
     }
@@ -187,47 +224,138 @@ class ApiActivity : ComponentActivity() {
         } ?: throw IllegalArgumentException("Tag must not be null")
 
     private fun launchApp(pkg: String, tagId: Int? = null) {
-        if (tagId != null) setListFrozen(false, HailData.checkedList.filter { tagId in it.tagIdList })
-        if (AppManager.isAppFrozen(pkg)) AppManager.setAppFrozen(pkg, false)
-        if (HailData.workingMode == HailData.MODE_ISLAND_HIDE) {
-            HIsland.ensureLaunchIntentExists(packageName)
-        }
-        packageManager.getLaunchIntentForPackage(pkg)?.let {
-            startActivity(it)
-        } ?: throw ActivityNotFoundException(getString(R.string.activity_not_found))
-    }
-
-    private fun setAppFrozen(pkg: String, frozen: Boolean) = when {
-        frozen && !HailData.isChecked(pkg) -> throw SecurityException("Package not checked")
-        AppManager.isAppFrozen(pkg) != frozen && !AppManager.setAppFrozen(
-            pkg, frozen
-        ) -> throw IllegalStateException(getString(R.string.permission_denied))
-
-        else -> {
-            HUI.showToast(
-                if (frozen) R.string.msg_freeze else R.string.msg_unfreeze,
-                HPackages.getApplicationInfoOrNull(pkg)?.loadLabel(packageManager) ?: pkg
-            )
-        }
-    }
-
-    private fun setListFrozen(
-        frozen: Boolean, list: List<AppInfo> = HailData.checkedList, skipWhitelisted: Boolean = false
-    ) {
-        val filtered =
-            list.filter { AppManager.isAppFrozen(it.packageName) != frozen && !(skipWhitelisted && it.whitelisted) }
-        when (val result = AppManager.setListFrozen(frozen, *filtered.toTypedArray())) {
-            null -> throw IllegalStateException(getString(R.string.permission_denied))
-            else -> {
-                HUI.showToast(
-                    if (frozen) R.string.msg_freeze else R.string.msg_unfreeze, result
-                )
+        lifecycleScope.launch {
+            runCatching {
+                val workingMode = tagId?.let(HailData::tagWorkingMode)
+                    ?: HailData.checkedList.find { it.packageName == pkg }
+                        ?.let(HailData::appWorkingModeTag)
+                        ?.second
+                    ?: HailData.workingMode
+                if (tagId != null) {
+                    val tagApps = HailData.checkedList.filter { tagId in it.tagIdList }
+                    executeListFrozen(
+                        frozen = false,
+                        list = tagApps,
+                        workingMode = workingMode,
+                    ) ?: throw IllegalStateException(getString(R.string.permission_denied))
+                }
+                withContext(Dispatchers.IO) {
+                    if (AppManager.isAppFrozen(pkg, workingMode)) {
+                        AppManager.setAppFrozen(pkg, false, workingMode)
+                    }
+                    if (workingMode == HailData.MODE_ISLAND_HIDE) {
+                        HIsland.ensureLaunchIntentExists(pkg)
+                    }
+                }
+                packageManager.getLaunchIntentForPackage(pkg)?.let(::startActivity)
+                    ?: throw ActivityNotFoundException(getString(R.string.activity_not_found))
+            }.onSuccess {
+                finish()
+            }.onFailure {
+                setErrorDialog(it)
             }
         }
     }
 
+    private fun setAppFrozen(pkg: String, frozen: Boolean) {
+        if (frozen && !HailData.isChecked(pkg)) {
+            throw SecurityException("Package not checked")
+        }
+        val workingMode = HailData.checkedList.find { it.packageName == pkg }
+            ?.let(HailData::appWorkingModeTag)
+            ?.second
+            ?: HailData.workingMode
+        if (AppManager.isAppFrozen(pkg, workingMode) != frozen &&
+            !AppManager.setAppFrozen(pkg, frozen, workingMode)
+        ) {
+            throw IllegalStateException(getString(R.string.permission_denied))
+        }
+        HUI.showToast(
+            if (frozen) R.string.msg_freeze else R.string.msg_unfreeze,
+            HPackages.getApplicationInfoOrNull(pkg)?.loadLabel(packageManager) ?: pkg,
+        )
+    }
+
+    private fun setListFrozen(
+        frozen: Boolean,
+        list: List<AppInfo> = HailData.checkedList,
+        skipWhitelisted: Boolean = false,
+        workingMode: String? = null,
+    ) {
+        val snapshot = list.toList()
+        lifecycleScope.launch {
+            runCatching {
+                executeListFrozen(frozen, snapshot, skipWhitelisted, workingMode)
+            }.onSuccess { result ->
+                if (result == null) {
+                    setErrorDialog(IllegalStateException(getString(R.string.permission_denied)))
+                } else {
+                    HUI.showToast(
+                        if (frozen) R.string.msg_freeze else R.string.msg_unfreeze,
+                        result,
+                    )
+                    finish()
+                }
+            }.onFailure {
+                setErrorDialog(it)
+            }
+        }
+    }
+
+    private suspend fun executeListFrozen(
+        frozen: Boolean,
+        list: List<AppInfo>,
+        skipWhitelisted: Boolean = false,
+        workingMode: String? = null,
+    ): String? = withContext(Dispatchers.IO) {
+        if (workingMode != null) {
+            applyListFrozen(frozen, list, skipWhitelisted, workingMode)
+        } else {
+            var applied = 0
+            var failed = false
+            list.groupBy(HailData::appWorkingModeTag).forEach { (tagMode, apps) ->
+                val (_, mode) = tagMode
+                if (mode == HailData.MODE_DEFAULT) {
+                    failed = true
+                    return@forEach
+                }
+                val result = applyListFrozen(frozen, apps, skipWhitelisted, mode)
+                if (result == null) failed = true else applied += result.toIntOrNull() ?: 1
+            }
+            if (failed && applied == 0) null else applied.toString()
+        }
+    }
+
+    private fun applyListFrozen(
+        frozen: Boolean,
+        list: List<AppInfo>,
+        skipWhitelisted: Boolean,
+        workingMode: String,
+    ): String? {
+        val filtered = list.filter {
+            AppManager.isAppFrozen(it.packageName, workingMode) != frozen &&
+                !(skipWhitelisted && it.whitelisted)
+        }
+        return AppManager.setListFrozen(frozen, workingMode, *filtered.toTypedArray())
+    }
+
     private fun lockScreen(freezeAll: Boolean) {
-        if (freezeAll) setListFrozen(true)
-        if (AppManager.lockScreen.not()) throw IllegalStateException(getString(R.string.permission_denied))
+        lifecycleScope.launch {
+            runCatching {
+                if (freezeAll) {
+                    executeListFrozen(
+                        frozen = true,
+                        list = HailData.checkedList,
+                    ) ?: throw IllegalStateException(getString(R.string.permission_denied))
+                }
+                if (!withContext(Dispatchers.IO) { AppManager.lockScreen }) {
+                    throw IllegalStateException(getString(R.string.permission_denied))
+                }
+            }.onSuccess {
+                finish()
+            }.onFailure {
+                setErrorDialog(it)
+            }
+        }
     }
 }

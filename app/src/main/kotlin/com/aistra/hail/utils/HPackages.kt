@@ -14,6 +14,13 @@ import org.lsposed.hiddenapibypass.HiddenApiBypass
 object HPackages {
     val myUserId get() = android.os.Process.myUserHandle().hashCode()
 
+    private val applicationInfoPrivateFlagsField by lazy {
+        runCatching {
+            HiddenApiBypass.getInstanceFields(ApplicationInfo::class.java)
+                .firstOrNull { it.name == "privateFlags" }
+        }.getOrNull()
+    }
+
     fun packageUri(packageName: String) = "package:$packageName"
 
     @RequiresApi(Build.VERSION_CODES.N)
@@ -47,29 +54,53 @@ object HPackages {
 
     fun isAppDisabled(packageName: String): Boolean = getApplicationInfoOrNull(packageName)?.enabled?.not() ?: false
 
-    fun isAppHidden(packageName: String): Boolean = getApplicationInfoOrNull(packageName)?.let {
-        (ApplicationInfo::class.java.getField("privateFlags").get(it) as Int) and 1 == 1
-    } ?: false
+    fun isAppHidden(packageName: String): Boolean {
+        val info = getApplicationInfoOrNull(packageName) ?: return false
+        info.privateFlagsOrNull()?.let { return it and 1 != 0 }
+        return info.flags and ApplicationInfo.FLAG_INSTALLED != 0 &&
+            getApplicationInfoOrNull(
+                packageName,
+                PackageManager.MATCH_DISABLED_COMPONENTS,
+            ) == null
+    }
 
     fun isAppStopped(packageName: String): Boolean =
         getApplicationInfoOrNull(packageName)?.run { flags and ApplicationInfo.FLAG_STOPPED == ApplicationInfo.FLAG_STOPPED }
             ?: false
 
-    fun isAppSuspended(packageName: String): Boolean = getApplicationInfoOrNull(packageName)?.let {
-        when {
-//            This method will cause NameNotFoundException with uninstalled packages
-//            HTarget.Q -> app.packageManager.isPackageSuspended(packageName)
-            HTarget.N -> it.flags and ApplicationInfo.FLAG_SUSPENDED == ApplicationInfo.FLAG_SUSPENDED
-            else -> false
+    fun isAppSuspended(packageName: String): Boolean {
+        if (HTarget.Q) {
+            runCatching { app.packageManager.isPackageSuspended(packageName) }
+                .getOrNull()
+                ?.let { return it }
         }
-    } ?: false
+        return getApplicationInfoOrNull(packageName)?.let {
+            HTarget.N &&
+                (it.flags and ApplicationInfo.FLAG_SUSPENDED) ==
+                ApplicationInfo.FLAG_SUSPENDED
+        } ?: false
+    }
 
-    fun isAppUninstalled(packageName: String): Boolean =
-        getApplicationInfoOrNull(packageName)?.run { flags and ApplicationInfo.FLAG_INSTALLED != ApplicationInfo.FLAG_INSTALLED }
-            ?: true
+    fun isAppUninstalled(packageName: String): Boolean {
+        val info = getApplicationInfoOrNull(packageName)
+        val packageInfoVisible = runCatching {
+            if (HTarget.T) app.packageManager.getPackageInfo(
+                packageName,
+                PackageManager.PackageInfoFlags.of(0),
+            )
+            else app.packageManager.getPackageInfo(packageName, 0)
+        }.isSuccess
+        return isPackageUninstalled(
+            installedFlagSet = info?.flags
+                ?.and(ApplicationInfo.FLAG_INSTALLED)
+                ?.let { it != 0 }
+                ?: false,
+            packageInfoVisible = packageInfoVisible,
+        )
+    }
 
     fun isPrivilegedApp(packageName: String): Boolean = getApplicationInfoOrNull(packageName)?.let {
-        (ApplicationInfo::class.java.getField("privateFlags").get(it) as Int) and 8 == 8
+        it.privateFlagsOrNull()?.let { privateFlags -> privateFlags and 8 != 0 } ?: false
     } ?: false
 
     fun canUninstallNormally(packageName: String): Boolean =
@@ -132,6 +163,10 @@ object HPackages {
             }
         }
     }.getOrDefault(false)
+
+    private fun ApplicationInfo.privateFlagsOrNull(): Int? = runCatching {
+        applicationInfoPrivateFlagsField?.getInt(this)
+    }.getOrNull()
 
     @RequiresApi(Build.VERSION_CODES.P)
     fun setAppRestricted(packageName: String, restricted: Boolean): Boolean = runCatching {

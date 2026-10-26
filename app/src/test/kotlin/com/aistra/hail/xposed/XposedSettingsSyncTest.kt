@@ -10,6 +10,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
+import org.robolectric.Shadows.shadowOf
 import org.robolectric.annotation.Config
 import java.io.File
 
@@ -70,6 +71,18 @@ class XposedSettingsSyncTest {
         XposedSettingsSync.update(false)
         assertEquals(mapOf("mipush_enhance" to false), pushPreferences().all)
         assertEquals("su_disable", destination.getString("working_mode", null))
+    }
+
+    @Test
+    fun togglingThePushSwitchBroadcastsTheNewValue() {
+        XposedSettingsSync.prepare(context)
+        XposedSettingsSync.update(false)
+
+        val intent = shadowOf(RuntimeEnvironment.getApplication())
+            .broadcastIntents
+            .lastOrNull { it.action == MiPushPreferences.ACTION_SETTINGS_CHANGED }
+        assertNotNull(intent)
+        assertFalse(intent!!.getBooleanExtra(MiPushPreferences.KEY_ENABLED, true))
     }
 
     private fun pushPreferences() = context.getSharedPreferences("mipush", Context.MODE_PRIVATE)
