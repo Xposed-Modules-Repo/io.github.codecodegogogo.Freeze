@@ -1,4 +1,6 @@
 # Freeze 
+**📢本项目github地址：https://github.com/codecodegogogo/Freeze**
+**📢本项目xposed仓库地址：https://github.com/Xposed-Modules-Repo/io.github.codecodegogogo.Freeze**
 
 Freeze 是基于 [Hail](https://github.com/aistra0528/Hail) 修改的 Android 应用管理工具，支持停用、隐藏、暂停和强行停止应用。默认桌面名称为“Freeze”，包名为 `com.aistra.calendar`，首次打开会直接进入管理界面。
 
